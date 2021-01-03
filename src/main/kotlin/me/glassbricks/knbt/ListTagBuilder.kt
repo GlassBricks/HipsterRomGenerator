@@ -15,6 +15,7 @@ fun listTag(vararg items: IntArray): ListTag<IntArrayTag> = ListTag(TagType.IntA
 fun listTag(vararg items: LongArray): ListTag<LongArrayTag> = ListTag(TagType.LongArray, items.map(::LongArrayTag))
 
 
+/*
 fun main() {
     for (i in TagType.values()) {
         println("""
@@ -22,3 +23,4 @@ fun listTag(vararg items: Byte): ListTag<ByteTag> = ListTag(TagType.Byte, items.
         """.trimIndent().replace("Byte", i.name))
     }
 }
+*/
