@@ -31,6 +31,24 @@ sealed class Tag {
     abstract val type: TagType
     abstract val value: Any
 
+
+    protected open fun valueEquals(other: Any): Boolean = value == other
+    protected open fun valueHash(): Int = value.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Tag) return false
+        if (type != other.type) return false
+        if (!valueEquals(other.value)) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = type.hashCode()
+        result = 31 * result + valueHash()
+        return result
+    }
+
     internal open fun appendTo(builder: StringBuilder, indent: Int) {
         builder.append(this.toString())
     }
@@ -76,6 +94,8 @@ class DoubleTag(override val value: Double) : Tag() {
 class ByteArrayTag(override val value: ByteArray) : Tag() {
     override val type get() = TagType.ByteArray
     override fun toString(): String = value.contentToString()
+    override fun valueEquals(other: Any): Boolean = other is ByteArray && value.contentEquals(other)
+    override fun valueHash(): Int = value.contentHashCode()
 }
 
 @Serializable(with = StringTagSerializer::class)
@@ -140,12 +160,16 @@ class CompoundTag(
 @Serializable(with = IntArrayTagSerializer::class)
 class IntArrayTag(override val value: IntArray) : Tag() {
     override val type get() = TagType.IntArray
+    override fun valueEquals(other: Any): Boolean = other is IntArray && value.contentEquals(other)
+    override fun valueHash(): Int = value.contentHashCode()
     override fun toString(): String = value.contentToString()
 }
 
 @Serializable(with = LongArrayTagSerializer::class)
 class LongArrayTag(override val value: LongArray) : Tag() {
     override val type get() = TagType.LongArray
+    override fun valueEquals(other: Any): Boolean = other is LongArray && value.contentEquals(other)
+    override fun valueHash(): Int = value.contentHashCode()
     override fun toString(): String = value.contentToString()
 }
 
