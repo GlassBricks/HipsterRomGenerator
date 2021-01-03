@@ -17,10 +17,6 @@ internal abstract class AbstractNbtBinaryDecoder(
         return TagType.fromId(id) ?: throw SerializationException("Unknown tag id $id")
     }
 
-    protected open fun beforeDecodeValue(requestedType: TagType) {
-        checkTagType(requestedType)
-    }
-
     private inline fun <T> doDecode(requestedType: TagType, rawDecode: DataInput.() -> T): T {
         beforeDecodeValue(requestedType)
         return input.rawDecode()

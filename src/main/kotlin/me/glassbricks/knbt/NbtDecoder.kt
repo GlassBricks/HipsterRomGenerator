@@ -33,6 +33,10 @@ internal abstract class AbstractNbtDecoder(override val nbt: Nbt) : AbstractDeco
             throw SerializationException("Found tag type ${nextTagType}, but tried to decode with tag type $requestedType")
     }
 
+    protected open fun beforeDecodeValue(requestedType: TagType) {
+        checkTagType(requestedType)
+    }
+
     abstract override fun decodeByte(): Byte
     abstract override fun decodeShort(): Short
     abstract override fun decodeInt(): Int
@@ -63,15 +67,15 @@ internal abstract class AbstractNbtDecoder(override val nbt: Nbt) : AbstractDeco
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
         return when (descriptor.kind) {
             StructureKind.LIST -> {
-                checkTagType(TagType.List)
+                beforeDecodeValue(TagType.List)
                 beginList()
             }
             StructureKind.MAP -> {
-                checkTagType(TagType.Compound)
+                beforeDecodeValue(TagType.Compound)
                 beginMap()
             }
             else -> {
-                checkTagType(TagType.Compound)
+                beforeDecodeValue(TagType.Compound)
                 beginCompound()
             }
         }

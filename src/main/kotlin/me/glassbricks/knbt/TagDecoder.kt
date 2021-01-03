@@ -12,10 +12,6 @@ internal abstract class AbstractNbtTagDecoder(
     abstract fun getCurrentElement(): Tag
     override fun getElementType(): TagType = getCurrentElement().type
 
-    protected open fun beforeDecodeValue(requestedType: TagType) {
-        checkTagType(requestedType)
-    }
-
     protected open fun <T> doDecode(requestedType: TagType): T {
         beforeDecodeValue(requestedType)
         return (getCurrentElement().value as T)
@@ -116,15 +112,15 @@ internal class NbtMapTagDecoder(
 @OptIn(ExperimentalSerializationApi::class)
 internal class NbtListTagDecoder(
     nbt: Nbt,
-    value: ListTag<*>,
+    private val value: ListTag<*>,
 ) : AbstractNbtTagDecoder(nbt) {
-    private val content: List<Tag> = value.value
+    private val list: List<Tag> get() = value.value
     private var index = -1
-    private val listSize get() = content.size
 
     private var decodeSequentially = false
 
-    override fun getCurrentElement(): Tag = content[index]
+    override fun getElementType(): TagType = value.elementType
+    override fun getCurrentElement(): Tag = list[index]
 
     override fun decodeSequentially(): Boolean {
         decodeSequentially = true
@@ -136,10 +132,10 @@ internal class NbtListTagDecoder(
         super.beforeDecodeValue(requestedType)
     }
 
-    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = listSize
+    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = list.size
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        if (++index < listSize) return index
+        if (++index < list.size) return index
         return CompositeDecoder.DECODE_DONE
     }
 
