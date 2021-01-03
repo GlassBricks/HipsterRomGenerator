@@ -1,121 +1,59 @@
 package me.glassbricks.knbt
 
 
-@DslMarker
-annotation class NbtDsl
-
-@NbtDsl
+@NbtBuilder
 class CompoundTagBuilder {
     val items = mutableMapOf<String, Tag>()
 
-    infix fun String.to(tag: Tag) {
+    infix fun String.eq(tag: Tag) {
         items[this] = tag
     }
 
-    infix fun String.to(value: Byte) {
-        this to ByteTag(value)
+    infix fun String.eq(value: Byte) {
+        this eq ByteTag(value)
     }
 
-    infix fun String.to(value: Short) {
-        this to ShortTag(value)
+    infix fun String.eq(value: Short) {
+        this eq ShortTag(value)
     }
 
-    infix fun String.to(value: Int) {
-        this to IntTag(value)
+    infix fun String.eq(value: Int) {
+        this eq IntTag(value)
     }
 
-    infix fun String.to(value: Long) {
-        this to LongTag(value)
+    infix fun String.eq(value: Long) {
+        this eq LongTag(value)
     }
 
-    infix fun String.to(value: Float) {
-        this to FloatTag(value)
+    infix fun String.eq(value: Float) {
+        this eq FloatTag(value)
     }
 
-    infix fun String.to(value: Double) {
-        this to DoubleTag(value)
+    infix fun String.eq(value: Double) {
+        this eq DoubleTag(value)
     }
 
-    infix fun String.to(value: ByteArray) {
-        this to ByteArrayTag(value)
+    infix fun String.eq(value: ByteArray) {
+        this eq ByteArrayTag(value)
     }
 
-    infix fun String.to(value: String) {
-        this to StringTag(value)
+    infix fun String.eq(value: String) {
+        this eq StringTag(value)
     }
 
-    infix fun String.to(value: CompoundItems) {
-        this to CompoundTag(value.toMap()) as Tag
+    infix fun String.eq(value: IntArray) {
+        this eq IntArrayTag(value)
     }
 
-    infix fun String.to(value: IntArray) {
-        this to IntArrayTag(value)
+    infix fun String.eq(value: LongArray) {
+        this eq LongArrayTag(value)
     }
 
-    infix fun String.to(value: LongArray) {
-        this to LongArrayTag(value)
-    }
-
-    @JvmName("listByte")
-    infix fun String.to(value: List<Byte>) {
-        this to ListTag(TagType.Byte, value.map(::ByteTag))
-    }
-
-    @JvmName("listShort")
-    infix fun String.to(value: List<Short>) {
-        this to ListTag(TagType.Short, value.map(::ShortTag))
-    }
-
-    @JvmName("listInt")
-    infix fun String.to(value: List<Int>) {
-        this to ListTag(TagType.Int, value.map(::IntTag))
-    }
-
-    @JvmName("listLong")
-    infix fun String.to(value: List<Long>) {
-        this to ListTag(TagType.Long, value.map(::LongTag))
-    }
-
-    @JvmName("listFloat")
-    infix fun String.to(value: List<Float>) {
-        this to ListTag(TagType.Float, value.map(::FloatTag))
-    }
-
-    @JvmName("listDouble")
-    infix fun String.to(value: List<Double>) {
-        this to ListTag(TagType.Double, value.map(::DoubleTag))
-    }
-
-    @JvmName("listByteArray")
-    infix fun String.to(value: List<ByteArray>) {
-        this to ListTag(TagType.ByteArray, value.map(::ByteArrayTag))
-    }
-
-    @JvmName("listString")
-    infix fun String.to(value: List<String>) {
-        this to ListTag(TagType.String, value.map(::StringTag))
-    }
-
-    @JvmName("listList")
-    infix fun String.to(value: List<ListTag<*>>) {
-        this to ListTag(TagType.List, value.toList()) as Tag
-    }
-
-    @JvmName("listIntArray")
-    infix fun String.to(value: List<IntArray>) {
-        this to ListTag(TagType.IntArray, value.map(::IntArrayTag))
-    }
-
-    @JvmName("listLongArray")
-    infix fun String.to(value: List<LongArray>) {
-        this to ListTag(TagType.LongArray, value.map(::LongArrayTag))
-    }
-
-
-    fun build() = CompoundTag(items)
+    fun build(): CompoundTag = CompoundTag(items.toMap())
 }
 
-inline fun compoundTag(builder: CompoundTagBuilder.() -> Unit) = CompoundTagBuilder().apply(builder).build()
+inline fun compoundTag(builder: CompoundTagBuilder.() -> Unit): CompoundTag =
+    CompoundTagBuilder().apply(builder).build()
 
 /*
 fun main() {
