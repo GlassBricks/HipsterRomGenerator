@@ -20,17 +20,17 @@ class ListTest : FreeSpec({
     }
 
     "int" - {
-        Arb.list(Arb.int()).checkAll {
+        Arb.list(Arb.int(), 0..10).checkAll(100) {
             doMirrorTest(WithList(it), serializer())
         }
     }
     "float" - {
-        Arb.list(Arb.float()).checkAll {
+        Arb.list(Arb.float(), 0..10).checkAll(100) {
             doMirrorTest(WithList(it), serializer())
         }
     }
     "string" - {
-        Arb.list(Arb.string()).checkAll {
+        Arb.list(Arb.string(), 0..10).checkAll(100) {
             doMirrorTest(WithList(it), serializer())
         }
     }

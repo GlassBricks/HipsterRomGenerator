@@ -25,19 +25,18 @@ class MapTest : FreeSpec({
             "four" to 40,
         )), serializer())
     }
-
-    "int, int" - {
-        Arb.map(Arb.int(), Arb.int()).checkAll {
-            doMirrorTest(WithMap(it), serializer())
-        }
-    }
     "string, int" - {
-        Arb.map(Arb.string(), Arb.int()).checkAll {
+        Arb.map(Arb.string(), Arb.int(), 0, 10).checkAll(100) {
             doMirrorTest(WithMap(it), serializer())
         }
     }
-    "byte, string" - {
-        Arb.map(Arb.byte(), Arb.string()).checkAll {
+    "int, int" - {
+        Arb.map(Arb.int(), Arb.int(), 0, 10).checkAll(100) {
+            doMirrorTest(WithMap(it), serializer())
+        }
+    }
+    "bool, string" - {
+        Arb.map(Arb.byte(), Arb.string(), 0, 10).checkAll(100) {
             doMirrorTest(WithMap(it), serializer())
         }
     }
