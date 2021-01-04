@@ -1,4 +1,4 @@
 
-rootProject.name = "HipsterSequenceGenerator"
+rootProject.name = "HipsterRomGenerator"
 include("knbt")
 include("romGenerator")
