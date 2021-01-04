@@ -10,6 +10,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/knbt" />
+            <option value="$PROJECT_DIR$/romGenerator" />
           </set>
         </option>
       </GradleProjectSettings>
