@@ -9,12 +9,13 @@ fun PistonSequence.printFlat(out: Appendable) = with(out) {
 
 fun PistonSequence.printGroups(out: Appendable) {
     val o = object {
-        val alreadyPrinted = setOf<PistonSequence>()
+        val alreadyPrinted = mutableSetOf<PistonSequence>()
         fun ensureAlreadyPrinted(
             sequence: PistonSequence,
         ) {
             if (sequence !in alreadyPrinted)
                 doPrint(sequence)
+            alreadyPrinted.add(sequence)
         }
 
         fun doPrint(sequence: PistonSequence) {

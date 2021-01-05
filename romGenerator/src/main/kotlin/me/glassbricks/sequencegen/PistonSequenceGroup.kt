@@ -14,7 +14,7 @@ abstract class AbstractPistonSequenceGroup(
 
     final override fun get(n: Int): PistonSequence {
         return sequences.getOrPut(n) {
-            PistonSequenceBuilder("$name[$n]").apply { create(n) }.build()
+            PistonSequenceBuilder("$name($n)").apply { create(n) }.build()
         }
     }
 
@@ -23,15 +23,13 @@ abstract class AbstractPistonSequenceGroup(
 
 
 inline fun group(
+    name: String? = null,
     crossinline build: PistonSequenceBuilder.(n: Int) -> Unit,
-): PropertyDelegateProvider<Any?, PistonSequenceGroup> =
-    PropertyDelegateProvider { _, property ->
-        object : AbstractPistonSequenceGroup(
-            name = property.name,
-        ) {
-            override fun PistonSequenceBuilder.create(n: Int) = build(n)
-        }
+): PropertyDelegateProvider<Any?, PistonSequenceGroup> = PropertyDelegateProvider { _, property ->
+    object : AbstractPistonSequenceGroup(name = name ?: property.name) {
+        override fun PistonSequenceBuilder.create(n: Int) = build(n)
     }
+}
 
 
 typealias SequenceFunc = PistonSequenceBuilder.(n: Int) -> Unit
@@ -39,14 +37,10 @@ typealias SequenceFunc = PistonSequenceBuilder.(n: Int) -> Unit
 fun func(build: SequenceFunc) = build
 
 inline fun seq(
+    name: String,
     crossinline build: PistonSequenceBuilder.() -> Unit,
-): PropertyDelegateProvider<Any?, PistonSequence> {
+) = PistonSequenceBuilder(name).apply(build).build()
 
-    return PropertyDelegateProvider { _, property ->
-        PistonSequenceBuilder(property.name).apply(build).build()
-    }
-
-}
 
 @Suppress("NOTHING_TO_INLINE")
 inline operator fun PistonSequenceGroup.getValue(thisRef: Any?, property: Any) = this

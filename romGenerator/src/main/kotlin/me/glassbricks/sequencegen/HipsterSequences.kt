@@ -15,101 +15,129 @@ val G.tpe get() = add(Tpe)
 
 // n: 0=floor block, 1=first block, etc.
 
-/** Does the entire sequence for a door of height N, including floor block and initial dpe */
-val entireSequence by group { n ->
-    //dpe already happened
-    if (n % 2 == 1) fixFloorBlock()
-    for (i in 1..n) {
-        if (i != 1) full(i)
+object HipsterSequences {
+
+    /** Does the entire sequence for a door of height N. */
+    val entireSequence by group { n ->
+        //dpe already happened
+        if (n % 2 == 1) store // fix floor block
+
+        // separately group first 3 rows
+        val start = if (n >= 3) {
+            firstThree()
+            4
+        } else 1
+
+        for (i in start..n) {
+            entire(i)
+        }
+    }
+
+    val firstThree by lazy {
+        seq("firstThree()") {
+            for (i in 1..3) {
+                entire(i)
+            }
+        }
+    }
+
+    /** Does the ENTIRE sequence for row n, including store and initial block */
+    val entire by group { n ->
+        full(n)
         store
+
+        inline = n <= 3
     }
-}
 
-val fixFloorBlock by seq {
-    dpe
-    store
-    dpe
-}
+    /** Pulls row n all the way down. */
+    val full by func { n ->
+        require(n in 1..11)
+        if (n in 0..2) {
+            (n + 1).pe
+        } else {
+            // another layer of pistons
+            morePistons
+            fullWithMorePistons(n)
+        }
+    }
 
-/** The entire sequence for row n */
-val full by group { n ->
-    require(n in 1..11)
-    extend(n)
-    retract(n)
-}
+    /** [full], but for n>=3 and a layer of pistons have already been added */
+    val fullWithMorePistons by func { n ->
+        require(n in 3..11)
+        extend(n)
+        retract(n)
+    }
 
-/** [full], but for n>=3 and a layer of pistons have already been added */
-val fullWithMorePistons by func { n ->
-    require(n in 3..11)
-    extendWithMorePistons(n)
-    retract(n)
-}
+    /** Grabs or spits a row at height n, leaves in piston-stack state. Only for n>=3 when pistons already have been added */
+    val extend: PistonSequenceGroup by group("extend") { n ->
+        require(n in 3..11)
 
-/** Grabs or spits a row at height n, leaves in piston-stack state */
-val extend by func { n ->
-    require(n in 0..11)
-    if (n in 0..2) {
-        (n + 1).pe
-    } else {
+        moreObs
+        // kick the obs out
+        if (n - 3 in 0..2) {
+            (n - 3 + 1).pe
+        } else {
+            // another layer of pistons
+            dpe
+            morePistons
+            extend(n - 3)
+        }
+
+        // Additional pulses so that top piston is actually powered
+        // 1pe is actually 2 1pe's, since 2pe and 3pe spit but 1pe doesn't
+        when (n) {
+            3 -> Unit // already down in [extend]
+            4, 5 -> (n - 2).pe
+            // special case n=6: FOUR 1pes because of floor powering
+            6 -> repeat(2) { spe }
+            7, 8 -> repeat(2) { (n - 5).pe }
+            9 -> repeat(6) { spe }
+            10, 11 -> repeat(12) { (n - 8).pe }
+        }
+    }
+
+    /** After [extend] (at the piston-observer-stack state), retracts everything, including the top grabbed block */
+    val retract: PistonSequenceGroup by group { n ->
+        require(n in 0..11)
+        if (n in 0..2) return@group // base case 1: block already down
+
+        // remove obs at n-3
+        retract(n - 3)
+        clearObs
+
+        // pull pistons at n-2 down
+        pull(n - 2)
+        if (n == 3) {
+            // base case 2: remove layer of pistons
+            clearPistons
+            // would have been tpe, but special case due to floor powering
+            dpe
+        } else {
+            // row n is now 1 block down, and pistons have been pulled
+            // do sequence for previous row
+            fullWithMorePistons(n - 1)
+        }
+    }
+
+    /** Pulls pistons at row n at least 1 block down */
+    val pull by group { n ->
+        require(n in 1..11)
+        if (n in 0..2) {
+            // simply grab pistons
+            (n + 1).pe
+            return@group
+        }
+
+        // another layer of pistons
         morePistons
-        extendWithMorePistons(n)
-    }
-}
+        extend(n)
 
-/** [extend], but for n>=3 and a layer of pistons have already been added */
-val extendWithMorePistons: PistonSequenceGroup by group { n ->
-    require(n in 3..11)
+        // remove obs
+        retract(n - 3)
+        clearObs
 
-    moreObs
-    if (n >= 6) 2.pe // another layer of pistons coming
-    extend(n - 3)
-
-    // Additional pulses so that top piston is actually powered
-    // 1pe is actually 2 1pe's, since 2pe and 3pe spit but 1pe doesn't
-    when (n) {
-        3 -> Unit // already down in [extend]
-        4, 5 -> (n - 2).pe
-        // special case n=6: FOUR 1pes because of floor powering
-        6 -> repeat(2) { spe }
-        7, 8 -> repeat(2) { (n - 5).pe }
-        9 -> repeat(6) { spe }
-        10, 11 -> repeat(12) { (n - 8).pe }
-    }
-}
-
-/** After [extend] (at the piston-observer-stack state), retracts everything, including the top grabbed block */
-val retract: PistonSequenceGroup by group { n ->
-    require(n in 0..11)
-    if (n in 0..2) return@group // no pistons or obs out, block already down
-    // remove obs at n-3 (if needed)
-    retract(n - 3)
-    clearObs
-    // pull pistons at n-2 down
-    pull(n - 2)
-
-    if (n == 3) {
-        // special case due to floor powering and base case clearing pistons
+        // remove below pistons
+        full(n - 2)
         clearPistons
-        dpe
-    } else {
-        // row is now 1 block down, and pistons pulled
-        // do sequence for previous row
-        fullWithMorePistons(n - 1)
     }
 }
-
-/** Pulls pistons at row n at least 1 block down */
-val pull by group { n ->
-    // grab pistons
-    extend(n)
-    if (n in 0..2) return@group // no piston stack
-
-    // remove obs
-    retract(n - 3)
-    clearObs
-
-    // remove below pistons
-    full(n - 2)
-    clearPistons
-}
-
