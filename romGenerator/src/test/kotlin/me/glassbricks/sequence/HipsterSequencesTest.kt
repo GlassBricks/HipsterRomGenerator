@@ -1,4 +1,4 @@
-package me.glassbricks.sequencegen
+package me.glassbricks.sequence
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe

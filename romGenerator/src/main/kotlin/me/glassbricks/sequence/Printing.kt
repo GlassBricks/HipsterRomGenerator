@@ -1,4 +1,4 @@
-package me.glassbricks.sequencegen
+package me.glassbricks.sequence
 
 
 fun PistonSequence.printFlat(out: Appendable) = with(out) {

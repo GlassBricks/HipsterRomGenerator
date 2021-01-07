@@ -1,6 +1,6 @@
-package me.glassbricks.sequencegen
+package me.glassbricks.sequence
 
-import me.glassbricks.sequencegen.Move.*
+import me.glassbricks.sequence.Move.*
 
 typealias G = PistonSequenceBuilder
 
@@ -20,30 +20,23 @@ object HipsterSequences {
     /** Does the entire sequence for a door of height N. */
     val entireSequence by group { n ->
         //dpe already happened
-        if (n % 2 == 1) store // fix floor block
+        if (n % 2 == 1) { // fix floor block
+            dpe
+            store
+            dpe
+        }
 
-        // separately group first 3 rows
-        val start = if (n >= 3) {
-            firstThree()
-            4
-        } else 1
 
-        for (i in start..n) {
+        for (i in 1..n) {
             entire(i)
         }
     }
 
-    val firstThree by lazy {
-        seq("firstThree()") {
-            for (i in 1..3) {
-                entire(i)
-            }
-        }
-    }
 
     /** Does the ENTIRE sequence for row n, including store and initial block */
     val entire by group { n ->
-        full(n)
+        if (n != 1)
+            full(n)
         store
 
         inline = n <= 3

@@ -1,6 +1,6 @@
-package me.glassbricks.sequencegen
+package me.glassbricks.sequence
 
-import me.glassbricks.sequencegen.Move.*
+import me.glassbricks.sequence.Move.*
 
 class PistonSequenceBuilder(
     val name: String,

@@ -1,4 +1,4 @@
-package me.glassbricks.sequencegen
+package me.glassbricks.sequence
 
 import kotlin.properties.PropertyDelegateProvider
 

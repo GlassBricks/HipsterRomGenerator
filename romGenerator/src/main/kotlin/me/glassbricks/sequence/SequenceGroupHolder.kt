@@ -1,4 +1,4 @@
-package me.glassbricks.sequencegen
+package me.glassbricks.sequence
 
 open class SequenceGroupHolder {
     data class GroupKey(val name: String, val n: Int)

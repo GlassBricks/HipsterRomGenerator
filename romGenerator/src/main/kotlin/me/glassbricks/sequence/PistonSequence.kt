@@ -1,4 +1,4 @@
-package me.glassbricks.sequencegen
+package me.glassbricks.sequence
 
 sealed class PistonSequenceItem
 

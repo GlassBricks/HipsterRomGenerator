@@ -93,9 +93,9 @@ class DoubleTag(override val value: Double) : Tag() {
 @Serializable(with = ByteArrayTagSerializer::class)
 class ByteArrayTag(override val value: ByteArray) : Tag() {
     override val type get() = TagType.ByteArray
-    override fun toString(): String = value.contentToString()
     override fun valueEquals(other: Any): Boolean = other is ByteArray && value.contentEquals(other)
     override fun valueHash(): Int = value.contentHashCode()
+    override fun toString(): String = "b" + value.contentToString()
 }
 
 @Serializable(with = StringTagSerializer::class)
@@ -162,7 +162,7 @@ class IntArrayTag(override val value: IntArray) : Tag() {
     override val type get() = TagType.IntArray
     override fun valueEquals(other: Any): Boolean = other is IntArray && value.contentEquals(other)
     override fun valueHash(): Int = value.contentHashCode()
-    override fun toString(): String = value.contentToString()
+    override fun toString(): String = "i" + value.contentToString()
 }
 
 @Serializable(with = LongArrayTagSerializer::class)
@@ -170,7 +170,7 @@ class LongArrayTag(override val value: LongArray) : Tag() {
     override val type get() = TagType.LongArray
     override fun valueEquals(other: Any): Boolean = other is LongArray && value.contentEquals(other)
     override fun valueHash(): Int = value.contentHashCode()
-    override fun toString(): String = value.contentToString()
+    override fun toString(): String = "l" + value.contentToString()
 }
 
 /*
