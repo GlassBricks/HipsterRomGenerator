@@ -131,7 +131,7 @@ class NotchTest : FreeSpec({
         val file = Thread.currentThread().contextClassLoader.getResource("bigtest.nbt")!!
         "tag" {
             val stream = GZIPInputStream(file.openStream())
-            val tagFromBinary = stream.use { Nbt.parseToTagFromStream(it) }
+            val tagFromBinary = stream.use { Nbt.decodeToTagFromStream(it) }
             tagFromBinary shouldBe expectedTag
         }
         "class" {

@@ -10,7 +10,6 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
 interface NbtEncoder : Encoder {
@@ -19,9 +18,10 @@ interface NbtEncoder : Encoder {
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-internal abstract class AbstractNbtEncoder(override val nbt: Nbt) : AbstractEncoder(), NbtEncoder {
-    override val serializersModule: SerializersModule
-        get() = EmptySerializersModule
+internal abstract class AbstractNbtEncoder(final override val nbt: Nbt) : AbstractEncoder(), NbtEncoder {
+    final override val serializersModule: SerializersModule = nbt.serializersModule
+    override fun shouldEncodeElementDefault(descriptor: SerialDescriptor, index: Int): Boolean =
+        nbt.conf.encodeDefaults
 
     // Encode value
     abstract override fun encodeByte(value: Byte)

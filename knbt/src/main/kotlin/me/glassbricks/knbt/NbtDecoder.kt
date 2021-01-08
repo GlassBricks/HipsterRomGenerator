@@ -11,7 +11,6 @@ import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
 
@@ -21,9 +20,10 @@ interface NbtDecoder : Decoder {
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-internal abstract class AbstractNbtDecoder(override val nbt: Nbt) : AbstractDecoder(), NbtDecoder {
-    override val serializersModule: SerializersModule
-        get() = EmptySerializersModule
+internal abstract class AbstractNbtDecoder(final override val nbt: Nbt) : AbstractDecoder(), NbtDecoder {
+    override val serializersModule: SerializersModule = nbt.serializersModule
+
+    protected abstract fun skipElement()
 
     abstract fun getElementType(): TagType
 

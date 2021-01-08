@@ -1,6 +1,7 @@
 package me.glassbricks.knbt
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 
@@ -8,6 +9,8 @@ import kotlinx.serialization.encoding.CompositeDecoder
 internal abstract class AbstractNbtTagDecoder(
     nbt: Nbt,
 ) : AbstractNbtDecoder(nbt) {
+
+    override fun skipElement() {}
 
     abstract fun getCurrentElement(): Tag
     override fun getElementType(): TagType = getCurrentElement().type
@@ -34,6 +37,7 @@ internal abstract class AbstractNbtTagDecoder(
     override fun beginCompound(): AbstractNbtDecoder = NbtCompoundTagDecoder(nbt, getCurrentElement() as CompoundTag)
     override fun beginMap(): AbstractNbtDecoder = NbtMapTagDecoder(nbt, getCurrentElement() as CompoundTag)
     override fun beginList(): AbstractNbtDecoder = NbtListTagDecoder(nbt, getCurrentElement() as ListTag<*>)
+
 }
 
 //Not meant as a CompositeDecoder
@@ -58,10 +62,16 @@ internal class NbtCompoundTagDecoder(
     override fun getCurrentElement(): Tag = currentElement!!
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        if (iterator.hasNext()) {
+        while (iterator.hasNext()) {
             val (name, tag) = iterator.next()
             currentElement = tag
-            return descriptor.getElementIndex(name)
+            val index = descriptor.getElementIndex(name)
+            if (index != CompositeDecoder.UNKNOWN_NAME) return index
+            if (nbt.conf.ignoreUnknownKeys) {
+                skipElement()
+            } else {
+                throw SerializationException("Encountered unknown element name $name")
+            }
         }
         currentElement = null
         return CompositeDecoder.DECODE_DONE

@@ -9,11 +9,11 @@ import kotlinx.serialization.modules.SerializersModule
 import java.io.*
 
 @OptIn(ExperimentalSerializationApi::class)
-sealed class Nbt : BinaryFormat {
-    companion object Default : Nbt()
+sealed class Nbt(internal val conf: NbtConf) : BinaryFormat {
+    companion object Default : Nbt(NbtConf())
 
     override val serializersModule: SerializersModule
-        get() = EmptySerializersModule
+        get() = conf.serializersModule
 
     override fun <T> encodeToByteArray(serializer: SerializationStrategy<T>, value: T): ByteArray {
         val stream = ByteArrayOutputStream()
@@ -54,12 +54,34 @@ sealed class Nbt : BinaryFormat {
         }
     }
 
-    fun parseToTag(binary: ByteArray): Tag {
+    fun decodeToTag(binary: ByteArray): Tag {
         return decodeFromByteArray(TagSerializer, binary)
     }
 
-    fun parseToTagFromStream(stream: InputStream): Tag {
+    fun decodeToTagFromStream(stream: InputStream): Tag {
         return decodeFromStream(stream, TagSerializer)
     }
 
 }
+
+fun Nbt(from: Nbt = Nbt.Default, builder: NbtBuilder.() -> Unit): Nbt {
+    return NbtImpl(NbtBuilder(from.conf).apply(builder).build())
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+internal class NbtConf constructor(
+    val serializersModule: SerializersModule = EmptySerializersModule,
+    val encodeDefaults: Boolean = false,
+    val ignoreUnknownKeys: Boolean = false,
+)
+
+class NbtBuilder internal constructor(conf: NbtConf) {
+    var module: SerializersModule = conf.serializersModule
+    var encodeDefaults: Boolean = conf.encodeDefaults
+    var ignoreUnknownKeys: Boolean = conf.ignoreUnknownKeys
+    internal fun build(): NbtConf = NbtConf(
+        module, encodeDefaults, ignoreUnknownKeys
+    )
+}
+
+private class NbtImpl(conf: NbtConf) : Nbt(conf)

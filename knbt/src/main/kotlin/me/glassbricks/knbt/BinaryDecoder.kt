@@ -12,6 +12,10 @@ internal abstract class AbstractNbtBinaryDecoder(
     protected val input: DataInput,
 ) : AbstractNbtDecoder(nbt) {
 
+    override fun skipElement() {
+        decodeNbtTag()
+    }
+
     protected fun readTagType(): TagType {
         val id = input.readByte()
         return TagType.fromId(id) ?: throw SerializationException("Unknown tag id $id")
@@ -54,6 +58,7 @@ internal abstract class AbstractNbtBinaryDecoder(
         val listSize = input.readInt()
         return NbtBinaryListDecoder(nbt, input, listType, listSize)
     }
+
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -73,10 +78,18 @@ internal open class NbtBinaryDecoder(
     override fun getElementType(): TagType = lastTagType!!
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        val name = readNamedTag()
+        while (true) {
+            val name = readNamedTag()
+            if (lastTagType === TagType.End) break
 
-        if (lastTagType !== TagType.End)
-            return descriptor.getElementIndex(name)
+            val index = descriptor.getElementIndex(name)
+            if (index != CompositeDecoder.UNKNOWN_NAME) return index
+            if (nbt.conf.ignoreUnknownKeys) {
+                skipElement()
+            } else {
+                throw SerializationException("Encountered unknown element name $name")
+            }
+        }
 
         return CompositeDecoder.DECODE_DONE
     }

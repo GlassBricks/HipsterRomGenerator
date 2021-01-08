@@ -1,7 +1,10 @@
 package me.glassbricks.knbt
 
 
-@NbtBuilder
+@DslMarker
+annotation class NbtDsl
+
+@NbtDsl
 class CompoundTagBuilder {
     val items = mutableMapOf<String, Tag>()
 

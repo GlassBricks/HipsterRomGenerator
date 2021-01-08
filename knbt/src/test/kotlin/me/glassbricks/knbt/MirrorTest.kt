@@ -60,7 +60,7 @@ private fun <T> binaryTriMirror(
     value: T,
     bytes: ByteArray,
 ) {
-    val nbtFromBinary = Nbt.parseToTag(bytes)
+    val nbtFromBinary = Nbt.decodeToTag(bytes)
     val fromNbtFromBinary = Nbt.decodeFromTag(serializer, nbtFromBinary)
     fromNbtFromBinary shouldBe value
 }
