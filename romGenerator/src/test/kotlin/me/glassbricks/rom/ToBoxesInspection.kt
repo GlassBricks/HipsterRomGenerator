@@ -8,5 +8,4 @@ class ToBoxesInspection : StringSpec({
         val boxes = HipsterSequences.entireSequence[3].toRom()
         println(boxes)
     }
-
 })

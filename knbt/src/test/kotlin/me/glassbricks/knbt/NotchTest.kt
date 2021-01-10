@@ -80,7 +80,8 @@ const val byteArrayName =
     "byteArrayTest (the first 1000 values of (n*n*255+n*7)%100, starting with n=0 (0, 62, 34, 16, 8, ...))"
 
 val byteArray = ByteArray(
-    1000) { n ->
+        1000
+) { n ->
     ((n * n * 255 + n * 7) % 100).toByte()
 }
 
@@ -121,7 +122,7 @@ class NotchTest : FreeSpec({
     "mirror" - {
         setupMirrorTest(BigTest(), serializer())
         "from class" {
-            Nbt.encodeToTag(serializer(), expectedClass) shouldBe expectedTag
+            Nbt { encodeDefaults = true }.encodeToTag(serializer(), expectedClass) shouldBe expectedTag
         }
         "from tag" {
             Nbt.decodeFromTag<BigTest>(serializer(), expectedTag) shouldBe expectedClass

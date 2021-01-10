@@ -1,0 +1,46 @@
+{
+  BlockData: b[0, 1, 2, 0, 1, 2, 0, 1]
+  BlockEntities: [{
+    Id: "minecraft:chest"
+    Items: []
+    Pos: i[0, 0, 0]
+  }, {
+    Id: "minecraft:chest"
+    Items: []
+    Pos: i[1, 0, 0]
+  }, {
+    Id: "minecraft:chest"
+    Items: []
+    Pos: i[3, 0, 0]
+  }, {
+    Id: "minecraft:chest"
+    Items: []
+    Pos: i[4, 0, 0]
+  }, {
+    Id: "minecraft:chest"
+    Items: []
+    Pos: i[6, 0, 0]
+  }, {
+    Id: "minecraft:chest"
+    Items: []
+    Pos: i[7, 0, 0]
+  }]
+  DataVersion: 2584
+  Height: 1s
+  Length: 1s
+  Metadata: {
+    WEOffsetX: 0
+    WEOffsetY: -2
+    WEOffsetZ: 0
+  }
+  Offset: i[14, 121, 49]
+  Palette: {
+    minecraft:air: 2
+    minecraft:chest[facing=south,type=left,waterlogged=false]: 1
+    minecraft:chest[facing=south,type=right,waterlogged=false]: 0
+  }
+  PaletteMax: 3
+  Version: 2
+  Width: 8s
+}
+

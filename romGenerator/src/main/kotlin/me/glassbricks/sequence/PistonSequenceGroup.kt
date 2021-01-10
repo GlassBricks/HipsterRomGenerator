@@ -2,6 +2,9 @@ package me.glassbricks.sequence
 
 import kotlin.properties.PropertyDelegateProvider
 
+/**
+ * A group of pistons sequences; for several different row heights n
+ */
 interface PistonSequenceGroup {
     val name: String
     operator fun get(n: Int): PistonSequence
@@ -21,32 +24,30 @@ abstract class AbstractPistonSequenceGroup(
     protected abstract fun PistonSequenceBuilder.create(n: Int)
 }
 
-
-inline fun group(
-    name: String? = null,
-    crossinline build: PistonSequenceBuilder.(n: Int) -> Unit,
-): PropertyDelegateProvider<Any?, PistonSequenceGroup> = PropertyDelegateProvider { _, property ->
-    object : AbstractPistonSequenceGroup(name = name ?: property.name) {
-        override fun PistonSequenceBuilder.create(n: Int) = build(n)
-    }
-}
-
-
 typealias SequenceFunc = PistonSequenceBuilder.(n: Int) -> Unit
 
-fun func(build: SequenceFunc) = build
+/**
+ * A collection of sequence groups a.k.a All the sequences
+ */
+abstract class SequenceGroupHolder {
+    private val _groups = mutableMapOf<String, PistonSequenceGroup>()
+    val groups get() = _groups
 
-inline fun seq(
-    name: String,
-    crossinline build: PistonSequenceBuilder.() -> Unit,
-) = PistonSequenceBuilder(name).apply(build).build()
+    protected fun group(
+            name: String? = null,
+            build: PistonSequenceBuilder.(n: Int) -> Unit,
+    ): PropertyDelegateProvider<Any?, PistonSequenceGroup> {
+        return PropertyDelegateProvider { _, property ->
+            object : AbstractPistonSequenceGroup(name = name ?: property.name) {
+                override fun PistonSequenceBuilder.create(n: Int) = build(n)
+            }
+                    .also { _groups[it.name] = it }
+        }
+    }
 
+    protected fun func(build: SequenceFunc) = build
 
-@Suppress("NOTHING_TO_INLINE")
-inline operator fun PistonSequenceGroup.getValue(thisRef: Any?, property: Any) = this
+    protected operator fun PistonSequenceGroup.getValue(thisRef: Any?, property: Any) = this
 
-@Suppress("NOTHING_TO_INLINE")
-inline operator fun SequenceFunc.getValue(thisRef: Any?, property: Any) = this
-
-@Suppress("NOTHING_TO_INLINE")
-inline operator fun PistonSequence.getValue(thisRef: Any?, property: Any) = this
+    protected operator fun SequenceFunc.getValue(thisRef: Any?, property: Any) = this
+}

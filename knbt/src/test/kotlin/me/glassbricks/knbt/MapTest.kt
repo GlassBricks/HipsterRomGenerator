@@ -18,12 +18,16 @@ private data class WithMap<K, V>(val map: Map<K, V>)
 
 class MapTest : FreeSpec({
     "example" - {
-        setupMirrorTest(WithMap(mapOf(
-            "one" to 1,
-            "thweee" to 3,
-            "two" to 2,
-            "four" to 40,
-        )), serializer())
+        setupMirrorTest(
+                WithMap(
+                        mapOf(
+                                "one" to 1,
+                                "thweee" to 3,
+                                "two" to 2,
+                                "four" to 40,
+                        )
+                ), serializer()
+        )
     }
     "string, int" - {
         Arb.map(Arb.string(), Arb.int(), 0, 10).checkAll(100) {

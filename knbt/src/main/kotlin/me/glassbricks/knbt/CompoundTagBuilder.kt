@@ -52,6 +52,10 @@ class CompoundTagBuilder {
         this eq LongArrayTag(value)
     }
 
+    inline operator fun String.invoke(builder: CompoundTagBuilder.() -> Unit) {
+        this eq compoundTag(builder)
+    }
+
     fun build(): CompoundTag = CompoundTag(items.toMap())
 }
 

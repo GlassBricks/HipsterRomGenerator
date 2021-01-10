@@ -1,16 +1,15 @@
 package me.glassbricks.rom
 
 import me.glassbricks.rom.ItemStack.Companion.STACK_MAX
-import me.glassbricks.rom.ShulkerBox.Companion.BOX_MAX_STACKS
-import me.glassbricks.rom.ShulkerBox.Companion.BOX_MIN_ITEMS
+import me.glassbricks.rom.ShulkerBox.Companion.BOX_MIN_STACKS
 import me.glassbricks.sequence.PistonSequence
 
-const val NUM_CHANNELS = 3
+const val NUM_BITS = 3
 
 private typealias BitSequence = Sequence<Boolean>
 
 private fun PistonSequence.toBitLists(): List<BitSequence> {
-    return List(NUM_CHANNELS) { bit ->
+    return List(NUM_BITS) { bit ->
         this.flattened.map { it.encoding.toInt() and (1 shl bit) != 0 }
     }
 }
@@ -23,12 +22,6 @@ sealed class ItemStack {
             require(count in 1..STACK_MAX)
         }
     }
-
-    val numItems
-        get() = when (this) {
-            Unstackable -> 1
-            is Stackable -> count
-        }
 
     override fun toString(): String {
         return when (this) {
@@ -43,44 +36,44 @@ sealed class ItemStack {
 }
 
 @OptIn(ExperimentalStdlibApi::class)
-private fun BitSequence.toItems(): Sequence<ItemStack> = sequence {
+private fun BitSequence.toItems(): List<ItemStack> = buildList {
     var stackCount = 0 // 0 == last was unstackable
     for (b in this@toItems) {
         if (b) {
-            if (stackCount != 0) yield(ItemStack.Stackable(stackCount))
+            if (stackCount != 0) add(ItemStack.Stackable(stackCount))
             stackCount = 0
-            yield(ItemStack.Unstackable)
+            add(ItemStack.Unstackable)
         } else {
             stackCount++
             if (stackCount > STACK_MAX) {
-                yield(ItemStack.Stackable(STACK_MAX))
+                add(ItemStack.Stackable(STACK_MAX))
                 stackCount -= STACK_MAX
             }
         }
     }
-    if (stackCount != 0) yield(ItemStack.Stackable(stackCount))
+    if (stackCount != 0) add(ItemStack.Stackable(stackCount))
 }
 
+const val CHEST_MAX_STACKS = 27
 
 data class ShulkerBox(val items: List<ItemStack>) {
-    fun numItems() = items.sumBy { it.numItems }
     override fun toString(): String = items.joinToString(separator = ",", prefix = "Box(", postfix = ")")
 
     companion object {
-        const val BOX_MAX_STACKS = 27
-        const val BOX_MIN_ITEMS = 3
+        const val BOX_MIN_STACKS = 3 // actually MIN_ITEMS but 1 stack at least 1 item
     }
 }
 
-private fun Sequence<ItemStack>.toBoxes(): List<ShulkerBox> = chunked(BOX_MAX_STACKS, ::ShulkerBox).toList()
+private fun List<ItemStack>.toBoxes(): List<ShulkerBox> =
+        chunked(CHEST_MAX_STACKS)
+                .map(::ShulkerBox)
 
 private fun List<ShulkerBox>.balanced(): List<ShulkerBox> {
     val last = last()
-    val lastCount = last.numItems()
-    return if (lastCount >= BOX_MIN_ITEMS) this else {
-        val toMove = lastCount - BOX_MIN_ITEMS
+    val lastCount = last.items.count()
+    return if (lastCount >= BOX_MIN_STACKS) this else {
+        val toMove = BOX_MIN_STACKS - lastCount
         val secondToLast = this[lastIndex - 1]
-        //simply just move 3 stacks; at LEAST 3 items
         val newSecondToLast = secondToLast.items.dropLast(toMove)
         val newLast = secondToLast.items.takeLast(toMove) + last.items
 
@@ -94,9 +87,8 @@ private fun List<ShulkerBox>.balanced(): List<ShulkerBox> {
 typealias BoxList = List<ShulkerBox>
 
 fun PistonSequence.toRom(): List<BoxList> =
-    this.toBitLists()
-        .map {
+        toBitLists().map {
             it.toItems()
-                .toBoxes()
-                .balanced()
+                    .toBoxes()
+                    .balanced()
         }

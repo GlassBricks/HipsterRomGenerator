@@ -1,0 +1,104 @@
+{
+  Version: 2
+
+  Width: 2s
+  Height: 3s
+  Length: 1s
+
+  Palette: {
+      minecraft:chest[facing=south,type=left,waterlogged=false]: 1
+      minecraft:chest[facing=south,type=right,waterlogged=false]: 0
+  }
+  PaletteMax: 2
+
+  BlockData: b[0, 1, 0, 1, 0, 1]
+  BlockEntities: [{
+    Id: "minecraft:chest"
+    Items: [{
+      Count: 1b
+      Slot: 0b
+      id: "minecraft:blue_shulker_box"
+    }]
+    Pos: i[0, 0, 0]
+  }, {
+    Id: "minecraft:chest"
+    Items: [{
+      Count: 1b
+      Slot: 26b
+      id: "minecraft:blue_shulker_box"
+    }]
+    Pos: i[1, 0, 0]
+  }, {
+    Id: "minecraft:chest"
+    Items: [{
+      Count: 1b
+      Slot: 0b
+      id: "minecraft:green_shulker_box"
+    }]
+    Pos: i[0, 1, 0]
+  }, {
+    Id: "minecraft:chest"
+    Items: [{
+      Count: 1b
+      Slot: 26b
+      id: "minecraft:green_shulker_box"
+    }]
+    Pos: i[1, 1, 0]
+  }, {
+    Id: "minecraft:chest"
+    Items: [{
+      Count: 1b
+      Slot: 0b
+      id: "minecraft:red_shulker_box"
+      tag: {
+        BlockEntityTag: {
+          Items: [{
+            Count: 1b
+            Slot: 0b
+            id: "minecraft:wooden_axe"
+            tag: {
+              Damage: 0
+            }
+          }, {
+            Count: 2b
+            Slot: 1b
+            id: "minecraft:quartz_block"
+          }, {
+            Count: 1b
+            Slot: 2b
+            id: "minecraft:wooden_axe"
+            tag: {
+              Damage: 0
+            }
+          }, {
+            Count: 1b
+            Slot: 3b
+            id: "minecraft:anvil"
+          }]
+        }
+        display: {
+          Name: "{"text":"TOP LEFT"}"
+        }
+      }
+    }]
+    Pos: i[0, 2, 0]
+  }, {
+    Id: "minecraft:chest"
+    Items: [{
+      Count: 1b
+      Slot: 26b
+      id: "minecraft:red_shulker_box"
+    }]
+    Pos: i[1, 2, 0]
+  }]
+  DataVersion: 2584
+  Metadata: {
+    WEOffsetX: -1
+    WEOffsetY: 0
+    WEOffsetZ: -3
+  }
+  Offset: i[-42, 56, 43]
+
+}
+
+

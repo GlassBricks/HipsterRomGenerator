@@ -2,23 +2,31 @@ package me.glassbricks.sequence
 
 sealed class PistonSequenceItem
 
+/**
+ * A piston sequence.
+ *
+ * Can contain other piston sequences.
+ *
+ * If [inline], will be inlined when inserted into other pistons sequences.
+ */
 class PistonSequence(
-    val name: String,
-    items: List<PistonSequenceItem>,
-    val inline: Boolean = false,
+        val name: String,
+        items: List<PistonSequenceItem>,
+        val inline: Boolean = false,
 ) : PistonSequenceItem() {
     init {
         require(items.none { it is PistonSequence && it.inline })
     }
 
     val items: List<PistonSequenceItem> = items.toList()
-    val flatSize = items.flatSize()
+
     val flattened: Sequence<Move> = this.items.asSequence().flatMap {
         when (it) {
             is Move -> sequenceOf(it)
             is PistonSequence -> it.flattened
         }
     }
+    val flatSize = items.flatSize()
 
     override fun toString(): String = "$name: " + items.joinToString {
         when (it) {
@@ -33,7 +41,7 @@ fun List<PistonSequenceItem>.flatSize(): Int = sumBy { if (it is PistonSequence)
 sealed class Move(
     val encoding: Byte,
 ) : PistonSequenceItem() {
-    override fun toString(): String = javaClass.simpleName.splitCamelCase()
+    override fun toString(): String = this::class.simpleName!!.splitCamelCase()
 
     object MorePistons : Move(0b011)
     object ClearPistons : Move(0b010)
@@ -46,8 +54,11 @@ sealed class Move(
 }
 
 private fun String.splitCamelCase(): String =
-    replace(String.format("%s|%s|%s",
-        "(?<=[A-Z])(?=[A-Z][a-z])",
-        "(?<=[^A-Z])(?=[A-Z])",
-        "(?<=[A-Za-z])(?=[^A-Za-z])"
-    ).toRegex(), " ").toLowerCase()
+        replace(
+                String.format(
+                        "%s|%s|%s",
+                        "(?<=[A-Z])(?=[A-Z][a-z])",
+                        "(?<=[^A-Z])(?=[A-Z])",
+                        "(?<=[A-Za-z])(?=[^A-Za-z])"
+                ).toRegex(), " "
+        ).toLowerCase()

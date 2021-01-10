@@ -154,6 +154,10 @@ class CompoundTag(
         repeat(indent) { append(' ') }
         append('}')
     }
+
+    companion object {
+        val empty: CompoundTag = CompoundTag(emptyMap())
+    }
 }
 
 

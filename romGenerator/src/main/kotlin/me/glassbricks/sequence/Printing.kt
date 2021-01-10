@@ -1,24 +1,37 @@
 package me.glassbricks.sequence
 
 
-fun PistonSequence.printFlat(out: Appendable) = with(out) {
+fun PistonSequence.printFlat(out: Appendable) {
     flattened.forEach {
-        appendLine(it.toString())
+        out.appendLine(it.toString())
+    }
+}
+
+fun PistonSequence.printTree(out: Appendable) = printTree(this, out, 0)
+
+private fun printTree(sequence: PistonSequence, out: Appendable, indent: Int) {
+    sequence.items.forEach { item ->
+        repeat(indent) { out.append(' ') }
+        when (item) {
+            is Move -> out.appendLine(item.toString())
+            is PistonSequence -> {
+                out.append(item.name).appendLine(':')
+                printTree(item, out, indent + 2)
+            }
+        }
     }
 }
 
 fun PistonSequence.printGroups(out: Appendable) {
     val o = object {
         val alreadyPrinted = mutableSetOf<PistonSequence>()
-        fun ensureAlreadyPrinted(
-            sequence: PistonSequence,
-        ) {
+        fun ensureAlreadyPrinted(sequence: PistonSequence) {
             if (sequence !in alreadyPrinted)
-                doPrint(sequence)
+                print(sequence)
             alreadyPrinted.add(sequence)
         }
 
-        fun doPrint(sequence: PistonSequence) {
+        fun print(sequence: PistonSequence) {
             sequence.items.forEach {
                 if (it is PistonSequence) ensureAlreadyPrinted(it)
             }
@@ -34,5 +47,5 @@ fun PistonSequence.printGroups(out: Appendable) {
             out.appendLine()
         }
     }
-    o.doPrint(this)
+    o.print(this)
 }
