@@ -1,20 +1,20 @@
 package me.glassbricks.sequence
 
 
-fun PistonSequence.printFlat(out: Appendable) {
+fun MoveSequence<*>.printFlat(out: Appendable) {
     flattened.forEach {
         out.appendLine(it.toString())
     }
 }
 
-fun PistonSequence.printTree(out: Appendable) = printTree(this, out, 0)
+fun MoveSequence<*>.printTree(out: Appendable) = printTree(this, out, 0)
 
-private fun printTree(sequence: PistonSequence, out: Appendable, indent: Int) {
-    sequence.items.forEach { item ->
+private fun printTree(sequence: MoveSequence<*>, out: Appendable, indent: Int) {
+    sequence.parts.forEach { item ->
         repeat(indent) { out.append(' ') }
         when (item) {
-            is Move -> out.appendLine(item.toString())
-            is PistonSequence -> {
+            is SequenceItem -> out.appendLine(item.toString())
+            is MoveSequence<*> -> {
                 out.append(item.name).appendLine(':')
                 printTree(item, out, indent + 2)
             }
@@ -22,25 +22,25 @@ private fun printTree(sequence: PistonSequence, out: Appendable, indent: Int) {
     }
 }
 
-fun PistonSequence.printGroups(out: Appendable) {
+fun MoveSequence<*>.printGroups(out: Appendable) {
     val o = object {
-        val alreadyPrinted = mutableSetOf<PistonSequence>()
-        fun ensureAlreadyPrinted(sequence: PistonSequence) {
+        val alreadyPrinted = mutableSetOf<MoveSequence<*>>()
+        fun ensureAlreadyPrinted(sequence: MoveSequence<*>) {
             if (sequence !in alreadyPrinted)
                 print(sequence)
             alreadyPrinted.add(sequence)
         }
 
-        fun print(sequence: PistonSequence) {
-            sequence.items.forEach {
-                if (it is PistonSequence) ensureAlreadyPrinted(it)
+        fun print(sequence: MoveSequence<*>) {
+            sequence.parts.forEach {
+                if (it is MoveSequence<*>) ensureAlreadyPrinted(it)
             }
             out.append(sequence.name).appendLine(':')
-            sequence.items.forEach {
+            sequence.parts.forEach {
                 out.append("    ")
                 when (it) {
-                    is Move -> out.append(it.toString())
-                    is PistonSequence -> out.append(it.name)
+                    is SequenceItem -> out.append(it.toString())
+                    is MoveSequence<*> -> out.append(it.name)
                 }
                 out.appendLine()
             }

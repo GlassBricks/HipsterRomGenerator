@@ -2,56 +2,61 @@ package me.glassbricks.rom
 
 import me.glassbricks.rom.ItemStack.Companion.STACK_MAX
 import me.glassbricks.rom.ShulkerBox.Companion.BOX_MIN_STACKS
-import me.glassbricks.sequence.PistonSequence
+import me.glassbricks.sequence.MoveSequence
+import me.glassbricks.sequence.SequenceItem
 
 const val NUM_BITS = 3
 
 private typealias BitSequence = Sequence<Boolean>
 
-private fun PistonSequence.toBitLists(): List<BitSequence> {
+private fun <T> Sequence<T>.toBitLists(encoding: Map<T, Int>): List<BitSequence> {
     return List(NUM_BITS) { bit ->
-        this.flattened.map { it.encoding.toInt() and (1 shl bit) != 0 }
+        this.map { encoding[it]!! and (1 shl bit) != 0 }
     }
 }
 
 
-sealed class ItemStack {
-    object Unstackable : ItemStack()
-    class Stackable(val count: Int) : ItemStack() {
-        init {
-            require(count in 1..STACK_MAX)
-        }
-    }
-
-    override fun toString(): String {
-        return when (this) {
-            Unstackable -> "##"
-            is Stackable -> "%2d".format(count)
-        }
-    }
+class ItemStack private constructor(val count: Int) {
 
     companion object {
+        val unstackable = ItemStack(0)
+        fun stackable(count: Int): ItemStack {
+            require(count in 1..STACK_MAX)
+            return ItemStack(count)
+        }
+
         const val STACK_MAX = 64
+    }
+
+    override fun toString(): String =
+        if (count == 0) {
+            "##"
+        } else {
+            "%2d".format(count)
+        }
+
+    override fun equals(other: Any?): Boolean {
+        throw AssertionError()
     }
 }
 
 @OptIn(ExperimentalStdlibApi::class)
-private fun BitSequence.toItems(): List<ItemStack> = buildList {
+fun BitSequence.toStacks(): List<ItemStack> = buildList {
     var stackCount = 0 // 0 == last was unstackable
-    for (b in this@toItems) {
+    for (b in this@toStacks) {
         if (b) {
-            if (stackCount != 0) add(ItemStack.Stackable(stackCount))
+            if (stackCount != 0) add(ItemStack.stackable(stackCount))
             stackCount = 0
-            add(ItemStack.Unstackable)
+            add(ItemStack.unstackable)
         } else {
             stackCount++
             if (stackCount > STACK_MAX) {
-                add(ItemStack.Stackable(STACK_MAX))
+                add(ItemStack.stackable(STACK_MAX))
                 stackCount -= STACK_MAX
             }
         }
     }
-    if (stackCount != 0) add(ItemStack.Stackable(stackCount))
+    if (stackCount != 0) add(ItemStack.stackable(stackCount))
 }
 
 const val CHEST_MAX_STACKS = 27
@@ -65,8 +70,8 @@ data class ShulkerBox(val items: List<ItemStack>) {
 }
 
 private fun List<ItemStack>.toBoxes(): List<ShulkerBox> =
-        chunked(CHEST_MAX_STACKS)
-                .map(::ShulkerBox)
+    chunked(CHEST_MAX_STACKS)
+        .map(::ShulkerBox)
 
 private fun List<ShulkerBox>.balanced(): List<ShulkerBox> {
     val last = last()
@@ -86,9 +91,20 @@ private fun List<ShulkerBox>.balanced(): List<ShulkerBox> {
 
 typealias BoxList = List<ShulkerBox>
 
-fun PistonSequence.toRom(): List<BoxList> =
-        toBitLists().map {
-            it.toItems()
-                    .toBoxes()
-                    .balanced()
+fun <T> Sequence<T>.toStacks(encoding: Map<T, Int>): List<List<ItemStack>> {
+    return toBitLists(encoding)
+        .map { it.toStacks() }
+}
+
+
+fun <T> Sequence<T>.toRom(encoding: Map<T, Int>): List<BoxList> {
+    return toStacks(encoding)
+        .map {
+            it.toBoxes()
+                .balanced()
         }
+}
+
+
+fun <E : SequenceItem> MoveSequence<E>.toRom(encoding: Map<E, Int>): List<BoxList> =
+    flattened.toRom(encoding)

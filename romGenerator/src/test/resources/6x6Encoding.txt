@@ -1,0 +1,54 @@
+dpe           : 000
+clear pistons : 001
+more obs      : 010
+more pistons  : 011
+clear obs     : 100
+tpe           : 101
+spe           : 110
+store         : 111
+
+dpe           : 000
+more obs      : 001
+clear pistons : 010
+more pistons  : 011
+clear obs     : 100
+spe           : 101
+tpe           : 110
+store         : 111
+
+dpe           : 000
+clear pistons : 001
+clear obs     : 010
+tpe           : 011
+more obs      : 100
+more pistons  : 101
+spe           : 110
+store         : 111
+
+dpe           : 000
+more obs      : 001
+clear obs     : 010
+spe           : 011
+clear pistons : 100
+more pistons  : 101
+tpe           : 110
+store         : 111
+
+dpe           : 000
+clear obs     : 001
+clear pistons : 010
+tpe           : 011
+more obs      : 100
+spe           : 101
+more pistons  : 110
+store         : 111
+
+dpe           : 000
+clear obs     : 001
+more obs      : 010
+spe           : 011
+clear pistons : 100
+tpe           : 101
+more pistons  : 110
+store         : 111
+

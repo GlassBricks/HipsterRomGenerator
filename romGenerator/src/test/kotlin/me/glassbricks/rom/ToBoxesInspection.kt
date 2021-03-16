@@ -1,11 +1,11 @@
 package me.glassbricks.rom
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.sequence.HipsterSequences
+import me.glassbricks.hipster.HipsterSequences
 
 class ToBoxesInspection : StringSpec({
     "first three" {
-        val boxes = HipsterSequences.entireSequence[3].toRom()
+        val boxes = HipsterSequences.glassSequence[3].toRom(HipsterSequences.encoding)
         println(boxes)
     }
 })
