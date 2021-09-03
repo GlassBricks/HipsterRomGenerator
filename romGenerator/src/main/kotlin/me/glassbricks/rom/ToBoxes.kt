@@ -9,7 +9,7 @@ const val NUM_BITS = 3
 
 private typealias BitSequence = Sequence<Boolean>
 
-private fun <T> Sequence<T>.toBitLists(encoding: Map<T, Int>): List<BitSequence> {
+private fun <T> Sequence<T>.toBitLists(encoding: Map<out T, Int>): List<BitSequence> {
     return List(NUM_BITS) { bit ->
         this.map { encoding[it]!! and (1 shl bit) != 0 }
     }
@@ -34,16 +34,12 @@ class ItemStack private constructor(val count: Int) {
         } else {
             "%2d".format(count)
         }
-
-    override fun equals(other: Any?): Boolean {
-        throw AssertionError()
-    }
 }
 
 @OptIn(ExperimentalStdlibApi::class)
-fun BitSequence.toStacks(): List<ItemStack> = buildList {
+fun BitSequence.toItemsStacks(): List<ItemStack> = buildList {
     var stackCount = 0 // 0 == last was unstackable
-    for (b in this@toStacks) {
+    for (b in this@toItemsStacks) {
         if (b) {
             if (stackCount != 0) add(ItemStack.stackable(stackCount))
             stackCount = 0
@@ -89,22 +85,17 @@ private fun List<ShulkerBox>.balanced(): List<ShulkerBox> {
     }
 }
 
-typealias BoxList = List<ShulkerBox>
+typealias ShulkerRom = List<List<ShulkerBox>>
 
-fun <T> Sequence<T>.toStacks(encoding: Map<T, Int>): List<List<ItemStack>> {
-    return toBitLists(encoding)
-        .map { it.toStacks() }
-}
+fun MoveSequence.toRom(encoding: Map<out SequenceItem, Int>): ShulkerRom = flattened.toRom(encoding)
 
-
-fun <T> Sequence<T>.toRom(encoding: Map<T, Int>): List<BoxList> {
-    return toStacks(encoding)
+fun <T> Sequence<T>.toRom(encoding: Map<out T, Int>): ShulkerRom =
+    toItemsStacks(encoding)
         .map {
             it.toBoxes()
                 .balanced()
         }
-}
 
-
-fun <E : SequenceItem> MoveSequence<E>.toRom(encoding: Map<E, Int>): List<BoxList> =
-    flattened.toRom(encoding)
+fun <T> Sequence<T>.toItemsStacks(encoding: Map<out T, Int>): List<List<ItemStack>> =
+    toBitLists(encoding)
+        .map(BitSequence::toItemsStacks)

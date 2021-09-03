@@ -6,7 +6,7 @@ import me.glassbricks.sequence.MoveSequenceGroup
 import me.glassbricks.sequence.SequenceGroupHolder
 import kotlin.math.abs
 
-private typealias B = MoveSequenceBuilder<HipsterMove>
+private typealias B = MoveSequenceBuilder
 
 /**
  * The actual sequence(s) for the hipster door(s).
@@ -104,7 +104,7 @@ open class HipsterSequences(val isSpecial6x6: Boolean = false) : SequenceGroupHo
      * [extend] but for n>=3 when pistons already have been added.
      * n = -6 or -7 are special cases.
      */
-    val extendWithMorePistons: MoveSequenceGroup<HipsterMove> by group("extend") { rn ->
+    val extendWithMorePistons: MoveSequenceGroup by group("extend") { rn ->
         require(rn in 3..11 || rn == -6 || rn == -7)
         val n = abs(rn)
 
@@ -135,7 +135,7 @@ open class HipsterSequences(val isSpecial6x6: Boolean = false) : SequenceGroupHo
     }
 
     /** After [extend] (at the piston-observer-stack state), retracts everything, including the top grabbed block */
-    val retract: MoveSequenceGroup<HipsterMove> by group { n ->
+    val retract: MoveSequenceGroup by group { n ->
         require(n in 0..11)
         if (n in 0..2) return@group // base case 1: block already down, no stack
 
@@ -185,7 +185,7 @@ open class HipsterSequences(val isSpecial6x6: Boolean = false) : SequenceGroupHo
         clearPistons
     }
 
-    val encoding = mapOf(
+    val glassHipsterEncoding = mapOf(
         MorePistons to 0b011,
         ClearPistons to 0b010,
         MoreObs to 0b100,

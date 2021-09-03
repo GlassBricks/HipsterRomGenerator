@@ -1,12 +1,13 @@
 package me.glassbricks.hipster
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.rom.toStacks
+import me.glassbricks.rom.toItemsStacks
+import me.glassbricks.sequence.SequenceItem
 
 class FindSpecial6x6 : StringSpec({
-    fun <E> findMinimalEncoding(
-        sequence: List<E>,
-        values: Array<E>,
+    fun findMinimalEncoding(
+        sequence: List<SequenceItem>,
+        values: List<SequenceItem>,
     ) {
         data class EncodingStat(
             val encoding: Map<*, Int>,
@@ -22,7 +23,7 @@ class FindSpecial6x6 : StringSpec({
                 }
             }
             .forEach { encoding ->
-                val stackLists = sequence.asSequence().toStacks(encoding)
+                val stackLists = sequence.asSequence().toItemsStacks(encoding)
                 val stacksNeeded = stackLists.maxOf { it.size }
                 val stat = EncodingStat(encoding, stacksNeeded)
 
@@ -52,20 +53,17 @@ class FindSpecial6x6 : StringSpec({
     "find minimal encoding" {
         findMinimalEncoding(
             normal6x6Sequence.flattened.toList(),
-            enumValues()
+            enumValues<HipsterMove>().toList()
         )
     }
 
     "find minimal encoding 2" {
         findMinimalEncoding(
             special6x6Sequence.toList(),
-            enumValues<HipsterMove>().filterNot { it == HipsterMove.Store }.toTypedArray()
+            enumValues<HipsterMove>().filterNot { it == HipsterMove.Store }
         )
     }
 })
-
-
-inline infix fun Int.divRoundUp(dividend: Int) = (this - 1) / dividend + 1
 
 private fun permutations(n: Int): Sequence<IntArray> = sequence {
     doPermut(
@@ -83,7 +81,7 @@ private suspend fun SequenceScope<IntArray>.doPermut(
     n: Int,
 ) {
     if (k == n) {
-        yield(current.copyOf())
+        yield(current)
         return
     }
     for (i in 0 until n) {

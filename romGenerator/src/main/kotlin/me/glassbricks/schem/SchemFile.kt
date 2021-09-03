@@ -41,6 +41,6 @@ class ChestItem(
     val Slot: Byte,
     val id: String,
     val Count: Byte,
-    val tag: CompoundTag? = null,
+    val tag: CompoundTag = CompoundTag.empty,
 )
 

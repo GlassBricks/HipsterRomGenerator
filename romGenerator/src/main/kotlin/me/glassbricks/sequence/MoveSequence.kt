@@ -1,30 +1,21 @@
 package me.glassbricks.sequence
 
 
-/**
- * A piston sequence.
- *
- * Can contain other piston sequences.
- *
- * If [inline], will be inlined when inserted into other pistons sequences.
- *
- */
-class MoveSequence<E : SequenceItem>(
+class MoveSequence(
     val name: String,
     parts: List<SequencePart>,
     val inline: Boolean = false,
 ) : SequencePart {
     init {
-        require(parts.none { it is MoveSequence<*> && it.inline })
+        require(parts.none { it is MoveSequence && it.inline })
     }
 
     val parts = parts.toList()
 
-    @Suppress("UNCHECKED_CAST")
-    val flattened: Sequence<E> = parts.asSequence().flatMap {
+    val flattened: Sequence<SequenceItem> = parts.asSequence().flatMap {
         when (it) {
-            is SequenceItem -> sequenceOf(it as E)
-            is MoveSequence<*> -> it.flattened as Sequence<E>
+            is SequenceItem -> sequenceOf(it)
+            is MoveSequence -> it.flattened
         }
     }
     val flatSize = parts.flatSize()
@@ -32,12 +23,12 @@ class MoveSequence<E : SequenceItem>(
     override fun toString(): String = "$name: " + parts.joinToString {
         when (it) {
             is SequenceItem -> it.toString()
-            is MoveSequence<*> -> it.name
+            is MoveSequence -> it.name
         }
     }
 }
 
-fun List<SequencePart>.flatSize(): Int = sumBy { if (it is MoveSequence<*>) it.flatSize else 1 }
+fun List<SequencePart>.flatSize(): Int = sumBy { if (it is MoveSequence) it.flatSize else 1 }
 
 sealed interface SequencePart
 

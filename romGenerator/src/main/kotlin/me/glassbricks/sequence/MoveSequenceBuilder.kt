@@ -1,6 +1,6 @@
 package me.glassbricks.sequence
 
-class MoveSequenceBuilder<E : SequenceItem>(
+class MoveSequenceBuilder(
     private val name: String,
     inline: Boolean = false,
 ) {
@@ -12,33 +12,33 @@ class MoveSequenceBuilder<E : SequenceItem>(
 
     private var nonDefaultInline: Boolean = inline
 
-    private val items = mutableListOf<SequencePart>()
-    private val flatSize get() = items.flatSize()
+    private val parts = mutableListOf<SequencePart>()
+    private val flatSize get() = parts.flatSize()
 
-    fun add(sequence: MoveSequence<E>) {
+    fun add(sequence: MoveSequence) {
         if (sequence.inline) {
-            items += sequence.parts
+            parts += sequence.parts
         } else {
-            items += sequence
+            parts += sequence
         }
     }
 
-    fun add(part: E) {
-        items += part
+    fun add(part: SequenceItem) {
+        parts += part
     }
 
-    operator fun MoveSequenceGroup<E>.invoke(n: Int) = add(get(n))
+    operator fun MoveSequenceGroup.invoke(n: Int) = add(get(n))
 
-    fun build(): MoveSequence<E> {
+    fun build(): MoveSequence {
         if (!nonDefaultInline) {
             inline = defaultInline()
         }
-        return MoveSequence(name, items, inline)
+        return MoveSequence(name, parts, inline)
     }
 
-    private fun defaultInline() = items.size <= 3 || flatSize <= 3
+    private fun defaultInline() = parts.size <= 3 || flatSize <= 3
 
 }
 
-fun <E : SequenceItem> MoveSequence(name: String, build: MoveSequenceBuilder<E>.() -> Unit) =
-    MoveSequenceBuilder<E>(name).apply(build).build()
+fun MoveSequence(name: String, build: MoveSequenceBuilder.() -> Unit) =
+    MoveSequenceBuilder(name).apply(build).build()

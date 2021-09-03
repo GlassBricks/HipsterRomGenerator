@@ -5,7 +5,8 @@ import me.glassbricks.hipster.HipsterSequences
 
 class ToBoxesInspection : StringSpec({
     "first three" {
-        val boxes = HipsterSequences.glassSequence[3].toRom(HipsterSequences.encoding)
+        val boxes = HipsterSequences.glassSequence[3].flattened
+            .toRom(HipsterSequences.glassHipsterEncoding)
         println(boxes)
     }
 })
