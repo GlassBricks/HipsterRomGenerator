@@ -5,13 +5,6 @@ package me.glassbricks.schem
 import kotlinx.serialization.Serializable
 import me.glassbricks.knbt.CompoundTag
 
-/**
- * Somewhat ad-hoc
- *
- * To be more general, serialization needs to support:
- * - Nullable/optional values?
- * - Basic polymorphism
- */
 @Serializable
 class SchemFile(
     val Width: Short,

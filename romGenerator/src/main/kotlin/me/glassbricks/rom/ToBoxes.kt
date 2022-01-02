@@ -36,7 +36,6 @@ class ItemStack private constructor(val count: Int) {
         }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 fun BitSequence.toItemsStacks(): List<ItemStack> = buildList {
     var stackCount = 0 // 0 == last was unstackable
     for (b in this@toItemsStacks) {

@@ -6,7 +6,7 @@ import me.glassbricks.rom.ItemStack
 import me.glassbricks.rom.ShulkerBox
 import me.glassbricks.rom.ShulkerRom
 
-@JvmName("toSchemShulkerRom ")
+@JvmName("toSchemShulkerRom")
 fun ShulkerRom.toSchem(): SchemFile {
 
     val numChests = size
