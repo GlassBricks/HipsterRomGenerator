@@ -6,10 +6,9 @@ import me.glassbricks.rom.ItemStack
 import me.glassbricks.rom.ShulkerBox
 import me.glassbricks.rom.ShulkerRom
 
-@JvmName("toSchemShulkerRom")
-fun ShulkerRom.toSchem(): SchemFile {
+fun stackedChests(rom: ShulkerRom): SchemFile {
 
-    val numChests = size
+    val numChests = rom.channels.size
 
     return SchemFile(
         Width = 8,
@@ -21,7 +20,7 @@ fun ShulkerRom.toSchem(): SchemFile {
         ),
         PaletteMax = 2,
         BlockData = ByteArray(numChests * 2) { (it % 2).toByte() },
-        BlockEntities = flatMapIndexed { chestIdx, boxes ->
+        BlockEntities = rom.channels.flatMapIndexed { chestIdx, boxes ->
             boxes.toDoubleChest(chestIdx) { chestSide ->
                 intArrayOf(chestSide, chestIdx, 0)
             }
@@ -30,9 +29,8 @@ fun ShulkerRom.toSchem(): SchemFile {
     )
 }
 
-fun ShulkerRom.toSchem2(): SchemFile {
-
-    require(size == 3)
+fun schem1(rom: ShulkerRom): SchemFile {
+    require(rom.channels.size == 3)
 
     return SchemFile(
         Width = 8,
@@ -45,7 +43,7 @@ fun ShulkerRom.toSchem2(): SchemFile {
         ),
         PaletteMax = 3,
         BlockData = byteArrayOf(0, 1, 2, 0, 1, 2, 0, 1),
-        BlockEntities = flatMapIndexed { chestIdx, boxes ->
+        BlockEntities = rom.channels.flatMapIndexed { chestIdx, boxes ->
             boxes.toDoubleChest(chestIdx) { chestSide ->
                 intArrayOf(chestIdx * 3 + chestSide, 0, 0)
             }
@@ -58,8 +56,8 @@ fun ShulkerRom.toSchem2(): SchemFile {
     )
 }
 
-fun List<List<ItemStack>>.toSchem(): SchemFile {
-    require(size == 3)
+fun noBoxesSchem(channels: List<List<ItemStack>>): SchemFile {
+    require(channels.size == 3)
 
     return SchemFile(
         Width = 8,
@@ -72,7 +70,7 @@ fun List<List<ItemStack>>.toSchem(): SchemFile {
         ),
         PaletteMax = 3,
         BlockData = byteArrayOf(0, 1, 2, 0, 1, 2, 0, 1),
-        BlockEntities = flatMapIndexed { chestIdx, items ->
+        BlockEntities = channels.flatMapIndexed { chestIdx, items ->
             items.toDoubleChest { chestSide ->
                 intArrayOf(chestIdx * 3 + chestSide, 0, 0)
             }

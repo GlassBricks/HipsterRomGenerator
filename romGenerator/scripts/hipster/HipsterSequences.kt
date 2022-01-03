@@ -1,32 +1,35 @@
-package me.glassbricks.hipster
+package hipster
 
-import me.glassbricks.hipster.HipsterMove.*
-import me.glassbricks.sequence.MoveSequenceBuilder
-import me.glassbricks.sequence.MoveSequenceGroup
-import me.glassbricks.sequence.SequenceGroupHolder
+import hipster.HipsterMove.*
+import me.glassbricks.rom.Encoding
+import me.glassbricks.sequence.PistonSequence
+import me.glassbricks.sequence.PistonSequenceBuilder
+import me.glassbricks.sequence.PistonSequenceGroup
+import me.glassbricks.sequence.SequenceCollection
 import kotlin.math.abs
 
-private typealias B = MoveSequenceBuilder
+private typealias B = PistonSequenceBuilder<HipsterMove>
 
 /**
  * The actual sequence(s) for the hipster door(s).
  *
  * Row 0 = floor, 1 = first row, etc.
  */
-open class HipsterSequences(val isSpecial6x6: Boolean = false) : SequenceGroupHolder<HipsterMove>() {
+// sloppily hardcoded bor both 11x11 glass hipster AND 6x6 hipster with slightly different moves
+open class HipsterSequences(private val isSpecial6x6: Boolean = false) : SequenceCollection<HipsterMove>() {
     companion object : HipsterSequences()
 
-    val B.morePistons: Unit get() = add(MorePistons)
-    val B.clearPistons get() = add(ClearPistons)
+    private val B.morePistons: Unit get() = add(MorePistons)
+    private val B.clearPistons get() = add(ClearPistons)
     val B.moreObs get() = add(MoreObs)
-    val B.clearObs get() = add(ClearObs)
-    val B.store get() = add(Store)
-    val B.spe get() = add(Spe)
-    val B.dpe get() = add(Dpe)
-    val B.tpe get() = add(Tpe)
+    private val B.clearObs get() = add(ClearObs)
+    private val B.store get() = add(Store)
+    private val B.spe get() = add(Spe)
+    private val B.dpe get() = add(Dpe)
+    private val B.tpe get() = add(Tpe)
 
 
-    fun B.pe(n: Int): Unit = when (n) {
+    private fun B.pe(n: Int): Unit = when (n) {
         1 -> add(Spe)
         2 -> add(Dpe)
         3 -> add(Tpe)
@@ -104,7 +107,7 @@ open class HipsterSequences(val isSpecial6x6: Boolean = false) : SequenceGroupHo
      * [extend] but for n>=3 when pistons already have been added.
      * n = -6 or -7 are special cases.
      */
-    val extendWithMorePistons: MoveSequenceGroup by group("extend") { rn ->
+    val extendWithMorePistons: PistonSequenceGroup<HipsterMove> by group("extend") { rn ->
         require(rn in 3..11 || rn == -6 || rn == -7)
         val n = abs(rn)
 
@@ -135,7 +138,7 @@ open class HipsterSequences(val isSpecial6x6: Boolean = false) : SequenceGroupHo
     }
 
     /** After [extend] (at the piston-observer-stack state), retracts everything, including the top grabbed block */
-    val retract: MoveSequenceGroup by group { n ->
+    val retract: PistonSequenceGroup<HipsterMove> by group { n ->
         require(n in 0..11)
         if (n in 0..2) return@group // base case 1: block already down, no stack
 
@@ -185,7 +188,27 @@ open class HipsterSequences(val isSpecial6x6: Boolean = false) : SequenceGroupHo
         clearPistons
     }
 
-    val glassHipsterEncoding = mapOf(
+}
+
+val normal6x6Sequence = PistonSequence<HipsterMove>("6x6 sequence") {
+    HipsterSequences(isSpecial6x6 = true).apply {
+        for (i in 1..5) {
+            row(i)
+        }
+        full(6)
+        moreObs
+    }
+}.moves.toList()
+
+val special6x6Sequence = normal6x6Sequence.map {
+    when (it) {
+        Store -> ClearPistons
+        else -> it
+    }
+}
+
+val glassHipster11Encoding = Encoding(
+    mapOf(
         MorePistons to 0b011,
         ClearPistons to 0b010,
         MoreObs to 0b100,
@@ -194,6 +217,5 @@ open class HipsterSequences(val isSpecial6x6: Boolean = false) : SequenceGroupHo
         Spe to 0b101,
         Dpe to 0b000,
         Tpe to 0b001
-    )
-}
-
+    ), 3
+)
