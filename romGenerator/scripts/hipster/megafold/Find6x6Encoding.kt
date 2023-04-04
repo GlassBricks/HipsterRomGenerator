@@ -1,8 +1,8 @@
-package hipster
+package hipster.megafold
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.rom.Encoding
-import me.glassbricks.rom.encodeToItems
+import me.glassbricks.Encoding
+import me.glassbricks.encodeToItems
 
 class Find6x6Encoding : StringSpec({
     "print sequence" {
@@ -20,10 +20,10 @@ class Find6x6Encoding : StringSpec({
 })
 
 fun findMinimalEncoding(
-    sequence: List<HipsterMove>,
+    sequence: List<Move>,
 ) {
     data class EncodingStat(
-        val encoding: Map<HipsterMove, Int>,
+        val encoding: Map<Move, Int>,
         val stacksNeeded: Int,
     )
 
@@ -38,7 +38,7 @@ fun findMinimalEncoding(
         }
         .forEach { encodingMap ->
             val encoding = Encoding(encodingMap, 3)
-            val stackLists = encodeToItems(sequence.asSequence(), encoding)
+            val stackLists = encodeToItems(sequence, encoding)
             val stacksNeeded = stackLists.maxOf { it.size }
             val stat = EncodingStat(encodingMap, stacksNeeded)
 

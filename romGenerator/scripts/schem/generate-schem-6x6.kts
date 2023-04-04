@@ -1,9 +1,9 @@
 package schem
 
-import hipster.HipsterMove.*
-import hipster.special6x6Sequence
-import me.glassbricks.rom.Encoding
-import me.glassbricks.rom.encodeToItems
+import hipster.megafold.Move.*
+import hipster.megafold.special6x6Sequence
+import me.glassbricks.Encoding
+import me.glassbricks.encodeToItems
 import me.glassbricks.schem.noBoxesSchem
 import java.io.File
 
@@ -23,7 +23,9 @@ val encoding = Encoding(
     ), 3
 )
 
+println(special6x6Sequence.size)
+
 writeSchematic(
-    encodeToItems(sequence.asSequence(), encoding).let(::noBoxesSchem),
+    encodeToItems(sequence, encoding).let(::noBoxesSchem),
     File("$dest/extra-special-6x5-rom.schem")
 )

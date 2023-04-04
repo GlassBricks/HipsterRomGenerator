@@ -1,10 +1,10 @@
 package me.glassbricks.schem
 
 import me.glassbricks.knbt.*
-import me.glassbricks.rom.CHEST_MAX_STACKS
-import me.glassbricks.rom.ItemStack
-import me.glassbricks.rom.ShulkerBox
-import me.glassbricks.rom.ShulkerRom
+import me.glassbricks.CHEST_MAX_STACKS
+import me.glassbricks.ItemStack
+import me.glassbricks.ShulkerBox
+import me.glassbricks.ShulkerRom
 
 fun stackedChests(rom: ShulkerRom): SchemFile {
 
@@ -104,7 +104,7 @@ private fun List<ItemStack>.toDoubleChest(
 
 private inline fun <T> List<T>.toDoubleChest(
     getChestPos: (chestSide: Int) -> IntArray,
-    elementToItem: (slot: Int, element: T) -> ChestItem,
+    elementToItem: (slot: Int, element: T) -> Item,
 ): List<ChestBlockEntity> {
     require(size <= 2 * CHEST_MAX_STACKS) { "Too many items to fit in a double chest" }
     return listOf(
@@ -153,12 +153,12 @@ private class Itemizer {
     fun toItem(
         slot: Int,
         itemStack: ItemStack,
-    ): ChestItem {
+    ): Item {
         val (id, count) = when (itemStack.count) {
             0 -> unstackableId to 1
             else -> stackableIds[unstackables++] to itemStack.count
         }
-        return ChestItem(
+        return Item(
             Slot = slot.toByte(),
             id = id,
             Count = count.toByte()
@@ -169,16 +169,16 @@ private class Itemizer {
 private fun ShulkerBox.toItem(
     slot: Int,
     boxId: String,
-): ChestItem {
+): Item {
     val m = Itemizer()
 
     val items = items.mapIndexed { idx, stack ->
         m.toItem(idx, stack)
-            .let { Nbt.encodeToTag(ChestItem.serializer(), it) }
+            .let { Nbt.encodeToTag(Item.serializer(), it) }
     }
         .let { ListTag(TagType.Compound, it) }
 
-    return ChestItem(
+    return Item(
         Slot = slot.toByte(),
         id = boxId,
         Count = 1,

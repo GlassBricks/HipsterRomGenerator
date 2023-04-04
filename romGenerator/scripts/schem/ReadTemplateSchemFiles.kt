@@ -11,6 +11,12 @@ class ReadTemplateSchemFiles : StringSpec({
     "read template 2" {
         readFile("rom-template-2.schem")
     }
+    "read carts" {
+        readFile("carts.schem")
+    }
+    "read 6x6 schem" {
+        readFile("6x6.schem")
+    }
 })
 
 fun readFile(name: String) {

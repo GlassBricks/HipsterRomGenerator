@@ -1,10 +1,7 @@
-package me.glassbricks.rom
+package me.glassbricks
 
-import me.glassbricks.sequence.PistonSequence
-import me.glassbricks.sequence.SequenceElement
-import me.glassbricks.sequence.SequenceMove
 
-class Encoding<M : SequenceElement?>(
+class Encoding<M>(
     val encoding: Map<M, Int>,
     val numBits: Int,
 ) {
@@ -12,7 +9,7 @@ class Encoding<M : SequenceElement?>(
         require(numBits in 0 until 32)
     }
 
-    fun encode(seq: Sequence<M>): List<BitSequence> {
+    fun encode(seq: Iterable<M>): List<BitSequence> {
         return List(numBits) { bit ->
             seq.map { encoding[it]!! and (1 shl bit) != 0 }
         }
@@ -39,7 +36,7 @@ value class ItemStack private constructor(val count: Int) {
     }
 }
 
-fun <M : SequenceElement?> encodeToItems(sequence: Sequence<M>, encoding: Encoding<M>): List<List<ItemStack>> =
+fun <M> encodeToItems(sequence: Iterable<M>, encoding: Encoding<M>): List<List<ItemStack>> =
     encoding.encode(sequence).map {
         buildList {
             var curStack = 0 // 0 == last was unstackable
@@ -61,7 +58,7 @@ fun <M : SequenceElement?> encodeToItems(sequence: Sequence<M>, encoding: Encodi
     }
 
 
-typealias BitSequence = Sequence<Boolean>
+typealias BitSequence = Iterable<Boolean>
 
 const val CHEST_MAX_STACKS = 27
 
@@ -103,8 +100,8 @@ class ShulkerRom(
     }
 }
 
-fun <M : SequenceMove> PistonSequence<M>.toRom(encoding: Encoding<M>): ShulkerRom = toRom(moves, encoding)
+//fun <M : RsInput> Iterable<M>.toRom(encoding: Encoding<M>): ShulkerRom = toRom(this, encoding)
 
-fun <M : SequenceMove> toRom(sequence: Sequence<M>, encoding: Encoding<M>): ShulkerRom = ShulkerRom(
+fun <M> toRom(sequence: Iterable<M>, encoding: Encoding<M>): ShulkerRom = ShulkerRom(
     encodeToItems(sequence, encoding).map(::toShulkerBoxes)
 )

@@ -1,5 +1,6 @@
 package me.glassbricks.knbt
 
+import io.kotest.core.names.TestName
 import io.kotest.core.spec.style.scopes.ContainerScope
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.async
@@ -7,7 +8,13 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToByteArray
 
 
-@Suppress("SuspendFunctionOnCoroutineScope")
+suspend fun ContainerScope.addTest(
+    name: String,
+    test: suspend () -> Unit
+) {
+    registerTest(TestName(name), false, null) { test() }
+}
+
 suspend fun <T> ContainerScope.setupMirrorTest(value: T, serializer: KSerializer<T>) {
     // object -> binary -> object
     val binary = async { Nbt.encodeToByteArray(serializer, value) }

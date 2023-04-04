@@ -6,7 +6,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import java.io.DataOutput
 
 
-@OptIn(ExperimentalSerializationApi::class)
 internal abstract class AbstractNbtBinaryEncoder(
     nbt: Nbt,
     protected val output: DataOutput,
@@ -85,6 +84,11 @@ internal open class NbtBinaryEncoder(
         val name = lastElementName!!
         writeTagType(tagType)
         output.writeUTF(name)
+    }
+
+
+    override fun encodeNull() {
+        lastElementName = null
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {
