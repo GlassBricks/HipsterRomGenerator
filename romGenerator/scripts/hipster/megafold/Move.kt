@@ -34,7 +34,7 @@ private fun B.pe(n: Int): Unit = when (n) {
 
 
 /** Does the entire sequence for a particular glass hipster door of height N. */
-val glassSequence by group { n ->
+val glassSequence by fn { n ->
     //dpe already happened
     if (n % 2 == 1) { // fix floor block
         dpe
@@ -52,7 +52,7 @@ val glassSequence by group { n ->
     }
 }
 
-val normalSequence by group { n ->
+val normalSequence by fn { n ->
     for (i in 1..n) {
         row(i)
     }
@@ -60,7 +60,7 @@ val normalSequence by group { n ->
 
 
 /** Does the ENTIRE sequence for row n, including store */
-val row by group { n ->
+val row by fn { n ->
     full(n)
     store
 }
@@ -101,7 +101,7 @@ fun B.extend(n: Int) {
  * [extend] but for n>=3 when pistons already have been added.
  * n = -6 or -7 are special cases.
  */
-val extendWithMorePistons: RsSequenceGroup<Move> by group { rn ->
+val extendWithMorePistons: RsSequenceFn<Move, Int> by fn { rn ->
     require(rn in 3..11 || rn == -6 || rn == -7)
     val n = abs(rn)
 
@@ -132,9 +132,9 @@ val extendWithMorePistons: RsSequenceGroup<Move> by group { rn ->
 }
 
 /** After [extend] (at the piston-observer-stack state), retracts everything, including the top grabbed block */
-val retract: RsSequenceGroup<Move> by group { n ->
+val retract: RsSequenceFn<Move, Int> by fn { n ->
     require(n in 0..11)
-    if (n in 0..2) return@group // base case 1: block already down, no stack
+    if (n in 0..2) return@fn
 
     // remove obs
     retract(n - 3)
@@ -161,12 +161,12 @@ val retract: RsSequenceGroup<Move> by group { n ->
 }
 
 /** From empty, pulls pistons at row n at least 1 block down */
-val pull by group { n ->
+val pull by fn { n ->
     require(n in 1..11)
     if (n in 0..2) {
         // simply grab pistons
         pe(n + 1)
-        return@group
+        return@fn
     }
 
     // another layer of pistons, pulls top pistons

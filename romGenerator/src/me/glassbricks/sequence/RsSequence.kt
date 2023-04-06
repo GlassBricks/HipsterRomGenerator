@@ -9,37 +9,13 @@ interface NamedRsSequence<I> {
     fun accept(builder: RsSequenceVisitor<I>)
 }
 
+fun <I> seq(build: RsSequenceVisitor<I>.() -> Unit) = build
 
-fun interface RsSequenceGroup<I> {
-    operator fun get(n: Int): NamedRsSequence<I>
-}
-
-operator fun <I> RsSequenceGroup<I>.getValue(
+operator fun <I> NamedRsSequence<I>.getValue(
     thisRef: Any?,
     property: kotlin.reflect.KProperty<*>
-): RsSequenceGroup<I> = this
+) = this
 
-
-fun <I> group(
-    build: RsSequenceVisitor<I>.(Int) -> Unit
-) = build
-
-operator fun <I> (RsSequenceVisitor<I>.(Int) -> Unit).provideDelegate(
-    thisRef: Any?,
-    prop: kotlin.reflect.KProperty<*>
-) = RsSequenceGroup { n ->
-    object : NamedRsSequence<I> {
-        override val name: String = "${prop.name}($n)"
-
-        override fun accept(builder: RsSequenceVisitor<I>) {
-            this@provideDelegate(builder, n)
-        }
-    }
-}
-
-fun <I> seq(
-    build: RsSequenceVisitor<I>.() -> Unit
-) = build
 
 operator fun <I> (RsSequenceVisitor<I>.() -> Unit).provideDelegate(
     thisRef: Any?,
@@ -52,11 +28,56 @@ operator fun <I> (RsSequenceVisitor<I>.() -> Unit).provideDelegate(
     }
 }
 
-operator fun <I> NamedRsSequence<I>.getValue(
+
+fun interface RsSequenceFn<I, P> {
+    operator fun get(n: P): NamedRsSequence<I>
+}
+
+
+fun <I> fn(build: RsSequenceVisitor<I>.(Int) -> Unit) = build
+//fun <I, P> fn(build: RsSequenceVisitor<I>.(P) -> Unit) = build
+
+operator fun <I, P> RsSequenceFn<I, P>.getValue(
     thisRef: Any?,
     property: kotlin.reflect.KProperty<*>
-) = this
+): RsSequenceFn<I, P> = this
 
+operator fun <I, P> (RsSequenceVisitor<I>.(P) -> Unit).provideDelegate(
+    thisRef: Any?,
+    prop: kotlin.reflect.KProperty<*>
+) = RsSequenceFn<I, P> { n ->
+    object : NamedRsSequence<I> {
+        override val name: String = "${prop.name}($n)"
+
+        override fun accept(builder: RsSequenceVisitor<I>) {
+            this@provideDelegate(builder, n)
+        }
+    }
+}
+
+fun interface RsSequenceFn2<I, P1, P2> {
+    operator fun get(n1: P1, n2: P2): NamedRsSequence<I>
+}
+
+fun <I, P1, P2> fn(build: RsSequenceVisitor<I>.(P1, P2) -> Unit) = build
+
+operator fun <I, P1, P2> RsSequenceFn2<I, P1, P2>.getValue(
+    thisRef: Any?,
+    property: kotlin.reflect.KProperty<*>
+): RsSequenceFn2<I, P1, P2> = this
+
+operator fun <I, P1, P2> (RsSequenceVisitor<I>.(P1, P2) -> Unit).provideDelegate(
+    thisRef: Any?,
+    prop: kotlin.reflect.KProperty<*>
+) = RsSequenceFn2<I, P1, P2> { n1, n2 ->
+    object : NamedRsSequence<I> {
+        override val name: String = "${prop.name}($n1, $n2)"
+
+        override fun accept(builder: RsSequenceVisitor<I>) {
+            this@provideDelegate(builder, n1, n2)
+        }
+    }
+}
 
 
 interface RsSequenceVisitor<I> {
@@ -65,20 +86,20 @@ interface RsSequenceVisitor<I> {
 
 
     fun addAll(elements: Iterable<I>) = elements.forEach { add(it) }
+    fun addAll(elements: Array<I>) = addAll(elements.asIterable())
     fun add(vararg elements: I) = addAll(elements.asIterable())
 
     operator fun I.unaryPlus() = add(this)
-
     operator fun I.times(n: Int) = repeat(n) { add(this) }
 
-    fun visit(group: RsSequenceGroup<I>, n: Int) = visit(group[n])
-
     operator fun NamedRsSequence<I>.invoke() = visit(this)
-    operator fun RsSequenceGroup<I>.invoke(n: Int) = visit(this, n)
+    operator fun <P> RsSequenceFn<I, P>.invoke(n: P) = visit(this[n])
+
+    operator fun Array<I>.invoke() = addAll(this)
 }
 
-class SimpleSequenceVisitor<I> : RsSequenceVisitor<I> {
-    private val elements = mutableListOf<I>()
+open class SimpleSequenceVisitor<I> : RsSequenceVisitor<I> {
+    protected val elements = mutableListOf<I>()
 
     override fun add(element: I) {
         elements += element
@@ -145,8 +166,8 @@ class PrintAllVisitor<I> : RsSequenceVisitor<I> {
         rootVisitor.add(element)
     }
 
-    override fun visit(group: RsSequenceGroup<I>, n: Int) {
-        rootVisitor.visit(group, n)
+    override fun visit(sequence: NamedRsSequence<I>) {
+        rootVisitor.visit(sequence)
     }
 
     fun build() = buildString {

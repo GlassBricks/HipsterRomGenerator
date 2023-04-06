@@ -15,7 +15,7 @@ class SchemFile(
     val PaletteMax: Int,
     val BlockData: ByteArray,
     val BlockEntities: List<ChestBlockEntity>,
-    val Metadata: CompoundTag,
+    val Metadata: CompoundTag? = null,
     val DataVersion: Int = DataVersions.v1_16_4,
     val Entities: List<Entity>? = null,
     val Offset: IntArray? = null,

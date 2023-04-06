@@ -68,11 +68,6 @@ fun <I> toCartSchem(
         PaletteMax = 1,
         BlockData = ByteArray(height) { 0 },
         BlockEntities = emptyList(),
-        Metadata = compoundTag {
-            "WEOffsetX" to 1
-            "WEOffsetY" to 0
-            "WEOffsetZ" to 0
-        },
         Entities = ss.mapIndexed { index, ss ->
             getCartWithSs(ss, listOf(0.5, index * cartHeight + 2.5, 0.5))
         },
