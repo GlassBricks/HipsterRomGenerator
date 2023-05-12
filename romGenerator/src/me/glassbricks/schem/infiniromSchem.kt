@@ -1,6 +1,5 @@
 package me.glassbricks.schem
 
-import me.glassbricks.knbt.compoundTag
 import kotlin.math.ceil
 
 
@@ -28,8 +27,10 @@ fun getCartWithSs(
     pos: List<Double>,
 ): Entity {
     val numItems = ssToNumItems[ss]
-    val numFullStacks = numItems / 64
-    val numItemsInLastStack = numItems % 64
+//    val numFullStacks = numItems / 64
+//    val numItemsInLastStack = numItems % 64
+    // div 64, rounded up
+    val numFullStacks = (numItems + 63) / 64
     val items = MutableList(numFullStacks) { index ->
         Item(
             Slot = index.toByte(),
@@ -37,15 +38,15 @@ fun getCartWithSs(
             Count = 1
         )
     }
-    if (numItemsInLastStack != 0) {
-        items.add(
-            Item(
-                Slot = items.size.toByte(),
-                id = "minecraft:dragon_head",
-                Count = numItemsInLastStack.toByte()
-            )
-        )
-    }
+//    if (numItemsInLastStack != 0) {
+//        items.add(
+//            Item(
+//                Slot = items.size.toByte(),
+//                id = "minecraft:dragon_head",
+//                Count = numItemsInLastStack.toByte()
+//            )
+//        )
+//    }
     return Entity(
         Id = "minecraft:chest_minecart",
         Items = items,

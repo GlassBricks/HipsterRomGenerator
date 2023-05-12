@@ -51,6 +51,7 @@ internal class NbtRootTagEncoder(nbt: Nbt) : AbstractNbtTagEncoder(nbt, null) {
 
     override fun getEncodedTag(): Tag = theTag!!
 
+
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -69,6 +70,10 @@ internal class NbtCompoundTagEncoder(
     override fun encodeElement(descriptor: SerialDescriptor, index: Int): Boolean {
         lastElementName = descriptor.getElementName(index)
         return true
+    }
+
+    override fun encodeNull() {
+        lastElementName = null
     }
 
     override fun getEncodedTag() = CompoundTag(content)
@@ -117,4 +122,3 @@ internal class NbtListTagEncoder(
         return ListTag(listType, items.asList() as List<Tag>)
     }
 }
-

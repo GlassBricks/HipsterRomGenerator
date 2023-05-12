@@ -46,16 +46,16 @@ class Item(
 
 @Serializable
 class Entity(
+    val Id: String,
+    val Pos: List<Double>,
     val Air: Short = 300,
     val FallDistance: Float = 0.0f,
     val Fire: Short = -1,
-    val Id: String,
     val Invulnerable: Boolean = false,
     val Items: List<Item>? = null,
     val Motion: DoubleArray = doubleArrayOf(0.0, 0.0, 0.0),
     val OnGround: Boolean = false,
     val PortalCooldown: Int = 0,
-    val Pos: List<Double>,
     val Rotation: FloatArray = floatArrayOf(0.0f, 0.0f),
     val UUID: IntArray? = null,
 )

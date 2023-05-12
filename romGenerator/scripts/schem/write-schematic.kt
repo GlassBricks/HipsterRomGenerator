@@ -5,6 +5,9 @@ import me.glassbricks.schem.SchemFile
 import java.io.File
 import java.util.zip.GZIPOutputStream
 
+fun writeSchematic(schematic: SchemFile, file: String) {
+    writeSchematic(schematic, File(file))
+}
 
 fun writeSchematic(schematic: SchemFile, file: File) {
     val nbt = Nbt { encodeDefaults = true }

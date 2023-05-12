@@ -69,7 +69,7 @@ fun Nbt(from: Nbt = Nbt.Default, builder: NbtBuilder.() -> Unit): Nbt {
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-internal class NbtConf constructor(
+internal class NbtConf(
     val serializersModule: SerializersModule = EmptySerializersModule,
     val encodeDefaults: Boolean = false,
     val ignoreUnknownKeys: Boolean = false,

@@ -94,4 +94,30 @@ class MakeSchems : StringSpec({
         val seq = HipSequences(nObs = 3, nFolds = 2).apply { row(8) }.build()
         println(seq.joinToString("\n"))
     }
+
+    "row9 new only" {
+        val seq = HipSequences(nObs = 3, nFolds = 2).apply { row(9) }.build()
+
+        val schem = toCartSchem(seq, encoding2)
+        writeSchematic(schem, File("row9new.schem"))
+    }
+
+    "9x9 new" {
+        val seq = HipSequences(nObs = 3, nFolds = 2).apply { +Move.t4; fullDoor(9) }.build()
+        val schem = toCartSchem(seq, encoding2)
+        writeSchematic(schem, File("9x9new.schem"))
+    }
+
+    "print 9 length" {
+        val seq = HipSequences(nObs = 3, nFolds = 2).apply { fullDoor(9) }.build()
+        println(seq.size)
+    }
+
+
+    "print 4 through 11 length" {
+        for(i in 4..11) {
+            val seq = HipSequences(nObs = 3, nFolds = 2).apply { fullDoor(i) }.build()
+            println("$i: ${seq.size}")
+        }
+    }
 })

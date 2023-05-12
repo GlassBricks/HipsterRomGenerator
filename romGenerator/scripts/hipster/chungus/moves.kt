@@ -1,42 +1,37 @@
-package hipster.jank
+package hipster.chungus
 
-import hipster.jank.Move.*
-import io.kotest.matchers.shouldBe
+import hipster.chungus.Move.*
 import me.glassbricks.sequence.SimpleSequenceVisitor
-import kotlin.math.roundToInt
+import me.glassbricks.splitCamelCase
 
 
-class HipSequences(
-    private val nFolds: Int = 1,
-    private val nObs: Int = 2
-) : SimpleSequenceVisitor<Move>() {
-    var expect: List<Move>? = null
+@Suppress("EnumEntryName")
+enum class Move(strName: String? = null) {
+    bot,
+    mid,
+    fold1, // sticky
+    fold2, // normal
+    fold3, //
+    t1("1t"),
+    t3("3t"),
+    t4("4t"),
+    jank("J"),
+    o,
+    b,
+    back,
+    storage,
+    wait
+    ;
 
-    override fun add(element: Move) {
-        elements.add(element)
-        when (element) {
-            fold -> require(nFolds >= 1)
-            fold2 -> require(nFolds >= 2)
-            b -> require(nObs >= 2)
-            back -> require(nObs >= 3)
-            else -> {}
-        }
-        expect?.let {
-            if (element != it[elements.lastIndex]) {
-                element shouldBe it[elements.lastIndex]
-            }
-        }
-    }
+    private val strName = strName ?: name.splitCamelCase()
+
+    override fun toString(): String = strName
+}
 
 
-    private val jankSeq = arrayOf(jank, t1, t3, o)
+class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
+
     private var obsOut = false
-        set(value) {
-            if (value == field) {
-                error("obsOut already $value")
-            }
-            field = value
-        }
 
     /**
      * Adds another row of pistons to the top, and spits them.
@@ -45,20 +40,19 @@ class HipSequences(
      *
      * ______ -> __P___
      */
-    private fun morePistons(row: Int) {
+    private fun morePistonsAndSpit(row: Int) {
+        require(row in 1..5)
+
         when (row) {
-            1 -> add(mid, t4)
-            2 -> add(bot, t4)
-            3 -> add(bot, fold, t4)
-            4 -> add(bot, fold2, t4)
-//            else -> error("Invalid row: $row")
-            else -> (row/2)
+            1 -> add(mid)
+            2 -> add(bot)
+            3 -> add(bot, fold1)
+            4 -> add(bot, fold2)
+            5 -> add(bot, fold2, fold3)
         }
+        add(t4)
     }
 
-    fun store() {
-        add(o, o)
-    }
 
     /**
      *  Sequence for row n
@@ -73,7 +67,7 @@ class HipSequences(
         }
 
         // add a row of pistons
-        morePistons(n / 2)
+        morePistonsAndSpit(n / 2)
         rowWithPistonsUp(n, false)
     }
 
@@ -110,7 +104,7 @@ class HipSequences(
                 }
             }
 
-            3 -> jankSeq()
+            3 -> add(jank)
             4 -> add(o, t4, t4, o)
             5 -> {
                 add(o, mid)
@@ -122,21 +116,21 @@ class HipSequences(
 
             6 -> {
                 +o
-                morePistons(1)
-                add(b, *J, *J)
+                morePistonsAndSpit(1)
+                add(b, jank, jank)
                 obsOut = true
             }
 
             7 -> {
                 +o
-                morePistons(2)
+                morePistonsAndSpit(2)
                 add(b, o, t4, t4, t4, t4, o)
                 obsOut = true
             }
 
             8 -> {
                 +o
-                morePistons(2)
+                morePistonsAndSpit(2)
                 add(
                     b, o,
                     mid,
@@ -158,23 +152,19 @@ class HipSequences(
                     TODO("pistonsHigh for 9")
                 }
                 +o
-                morePistons(3)
+                morePistonsAndSpit(3)
                 add(
                     b, o,
                     mid, back, b,
                     t1, t1,
                     o,
                     t1, t1, t1, t1, t3, o,
-                    *J
+                    jank
                 )
                 obsOut = true
             }
 
-//            else -> TODO("pow($n)")
-            else -> {
-                // dummy
-                o * (n*2.1).roundToInt()
-            }
+            else -> TODO("pow($n)")
         }
 
         // now, retract the bottommost obs(es)
@@ -186,12 +176,14 @@ class HipSequences(
         // O___PB_
         // (clear obs)
         // ____PB_
+
+        // the following could maybe be made more recursive, but whatever
         when (val obsRow = n - 3) {
             -1, 0, 1 -> {}
             2 -> {
                 retract(obsRow)
                 if (obsOut) {
-                    add(back, fold2) // fold2 is waiting move
+                    +back
                 } else {
                     +o
                 }
@@ -206,7 +198,7 @@ class HipSequences(
             5, 6 -> {
                 // 2 layers of obs!
                 retract(obsRow - 3)
-                add(b, back, fold2) // fold2 is waiting move
+                add(b, back)
                 retract(obsRow)
                 add(b, o)
                 obsOut = false
@@ -247,7 +239,7 @@ class HipSequences(
         if (n == 1) return
 
         // ______P
-        morePistons(n / 2)
+        morePistonsAndSpit(n / 2)
         // __P___P
         extendAndRetractObs(n, true)
         // ____PP_
@@ -269,9 +261,9 @@ class HipSequences(
         // retract the extra pistons, so ready for the next row
         when (pistonRow) {
             1 -> add(mid, t1, t1)
-            2 -> add(bot, mid, mid, fold, t1, t1)
+            2 -> add(bot, mid, mid, fold1, t1, t1)
             3 -> add(bot, mid, mid, t1, t1)
-            4, 5 -> add(fold, bot, mid, mid, t1, t1)
+            4, 5 -> add(fold1, bot, mid, mid, t1, t1)
             else -> TODO("pow retract($n)")
         }
         // ____P_
@@ -279,30 +271,47 @@ class HipSequences(
 
 
     fun fullDoor(n: Int) {
-//        if (n % 2 == 1) +t4
         for (r in 1 until n) {
             row(r)
-            store()
+            if (r == 9) +storage
+            add(o, o)
         }
         row(n)
 
         // floor block
         check(elements.removeLast() == t4)
-        add(t1, t1, t1)
+        t1 * 3
+    }
+
+}
+
+fun getChungusSequence(
+    fn: ChungusSeqBuilder.() -> Unit
+): List<Move> {
+    val rawMoves = ChungusSeqBuilder().apply(fn).build()
+
+    return buildList {
+        rawMoves.forEach {
+            add(it)
+            if (it == jank)
+                add(wait)
+        }
     }
 }
 
-
-val encoding2 = mapOf(
-    fold to 1,
-    mid to 2,
-    bot to 3,
-    back to 4,
-    b to 7,
-    fold2 to 8,
-    o to 10,
-    jank to 11,
-    t1 to 12,
-    t3 to 14,
-    t4 to 15,
-)
+val ChungusEncoding = mapOf(
+    1 to t1,
+    2 to t3,
+    3 to storage,
+    4 to t4,
+    5 to mid,
+    6 to fold1,
+    7 to bot,
+    8 to fold3,
+    9 to b,
+    10 to fold2,
+    11 to back,
+    12 to o,
+    13 to jank,
+    14 to wait
+).entries.associate { (k, v) -> v to k }
