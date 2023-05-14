@@ -105,7 +105,7 @@ open class SimpleSequenceVisitor<I> : RsSequenceVisitor<I> {
         elements += element
     }
 
-    fun build() = elements.toList()
+    open fun build() = elements.toList()
 }
 
 inline fun <I> getSequence(visit: RsSequenceVisitor<I>.() -> Unit) =

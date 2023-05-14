@@ -31,7 +31,11 @@ enum class Move(strName: String? = null) {
 
 class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
 
-    private var obsOut = false
+    private var obsOut = 0
+        set(value) {
+            assert(value in 0..2)
+            field = value
+        }
 
     /**
      * Adds another row of pistons to the top, and spits them.
@@ -86,6 +90,16 @@ class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
         // B_____
     }
 
+
+    private fun storeObs() {
+        when (obsOut) {
+            2 -> add(b, back)
+            1 -> add(b, o)
+            else -> TODO("no obs to retract")
+        }
+        obsOut--
+    }
+
     /**
      * With the first row of pistons already added, extends so that row n is grabbed, then clears everything below.
      *
@@ -97,7 +111,7 @@ class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
         when (n) {
             2 -> {
                 add(t1, t1)
-                if (obsOut) {
+                if (obsOut > 0) {
                     add(o, o, b, b)
                 } else {
                     add(o, b, b, o)
@@ -109,7 +123,7 @@ class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
             5 -> {
                 add(o, mid)
                 t1 * 2
-                if (obsOut) +back
+                if (obsOut == 1) +back
                 t1 * 2
                 +b; o * 6; +b
             }
@@ -117,15 +131,17 @@ class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
             6 -> {
                 +o
                 morePistonsAndSpit(1)
+                if (obsOut == 1) +back
                 add(b, jank, jank)
-                obsOut = true
+                obsOut++
             }
 
             7 -> {
+                check(obsOut == 0)
                 +o
                 morePistonsAndSpit(2)
                 add(b, o, t4, t4, t4, t4, o)
-                obsOut = true
+                obsOut++
             }
 
             8 -> {
@@ -144,24 +160,37 @@ class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
                 } else {
                     o * 16
                 }
-                obsOut = true
+                obsOut += 2
             }
 
-            9 -> {
-                if (pistonsHigh) {
-                    TODO("pistonsHigh for 9")
-                }
+            9, 10 -> {
                 +o
                 morePistonsAndSpit(3)
                 add(
                     b, o,
-                    mid, back, b,
+                    if (n == 9) mid else bot, back, b,
                     t1, t1,
-                    o,
-                    t1, t1, t1, t1, t3, o,
-                    jank
                 )
-                obsOut = true
+                if (n == 9) {
+                    if (!pistonsHigh) {
+                        add(
+                            o,
+                            t1, t1, t1, t1, t3, o,
+                            jank
+                        )
+                    } else {
+                        jank * 4
+                    }
+                } else {
+                    if (pistonsHigh) {
+                        TODO("pistons high for 10")
+                    }
+                    +o
+                    t4 * 19
+                    +o
+                }
+
+                obsOut += 2
             }
 
             else -> TODO("pow($n)")
@@ -182,7 +211,7 @@ class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
             -1, 0, 1 -> {}
             2 -> {
                 retract(obsRow)
-                if (obsOut) {
+                if (obsOut > 0) {
                     +back
                 } else {
                     +o
@@ -191,17 +220,16 @@ class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
 
             3, 4 -> {
                 retract(obsRow)
-                add(b, o)
-                obsOut = false
+                storeObs()
             }
 
-            5, 6 -> {
+            5, 6, 7 -> {
                 // 2 layers of obs!
                 retract(obsRow - 3)
-                add(b, back)
+                storeObs()
+
                 retract(obsRow)
-                add(b, o)
-                obsOut = false
+                storeObs()
             }
 
             else -> TODO("obs retract for $obsRow")
@@ -241,7 +269,7 @@ class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
         // ______P
         morePistonsAndSpit(n / 2)
         // __P___P
-        extendAndRetractObs(n, true)
+        extendAndRetractObs(n, false)
         // ____PP_
 
 
@@ -264,16 +292,17 @@ class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
             2 -> add(bot, mid, mid, fold1, t1, t1)
             3 -> add(bot, mid, mid, t1, t1)
             4, 5 -> add(fold1, bot, mid, mid, t1, t1)
+            6 -> add(fold1, bot, fold3, mid, mid, t1, t1)
             else -> TODO("pow retract($n)")
         }
         // ____P_
     }
 
 
-    fun fullDoor(n: Int) {
+    fun fullDoor(n: Int, initialT4: Boolean = true) {
         for (r in 1 until n) {
-            row(r)
-            if (r == 9) +storage
+            if (r == 9) add(storage)
+            if (r != 1 || initialT4) row(r)
             add(o, o)
         }
         row(n)
@@ -283,21 +312,33 @@ class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
         t1 * 3
     }
 
+    override fun build(): List<Move> {
+        assert(obsOut == 0)
+
+        return buildList {
+            elements.forEach {
+                if (it == t4) {
+                    if (lastOrNull() == t4) {
+                        add(wait)
+                    }
+                }
+
+                add(it)
+
+                if (it == jank) {
+                    add(wait)
+                    add(wait)
+                }
+            }
+        }
+    }
+
+
 }
 
 fun getChungusSequence(
     fn: ChungusSeqBuilder.() -> Unit
-): List<Move> {
-    val rawMoves = ChungusSeqBuilder().apply(fn).build()
-
-    return buildList {
-        rawMoves.forEach {
-            add(it)
-            if (it == jank)
-                add(wait)
-        }
-    }
-}
+): List<Move> = ChungusSeqBuilder().apply(fn).build()
 
 val ChungusEncoding = mapOf(
     1 to t1,
