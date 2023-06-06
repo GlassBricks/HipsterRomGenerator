@@ -1,6 +1,6 @@
-package hipster.jank
+package jankHipster
 
-import hipster.jank.Move.*
+import jankHipster.Move.*
 import io.kotest.matchers.shouldBe
 import me.glassbricks.sequence.SimpleSequenceVisitor
 import kotlin.math.roundToInt

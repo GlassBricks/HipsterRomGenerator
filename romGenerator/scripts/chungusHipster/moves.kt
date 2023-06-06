@@ -1,6 +1,6 @@
-package hipster.chungus
+package chungusHipster
 
-import hipster.chungus.Move.*
+import chungusHipster.Move.*
 import me.glassbricks.sequence.SimpleSequenceVisitor
 import me.glassbricks.splitCamelCase
 

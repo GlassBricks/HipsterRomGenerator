@@ -3,6 +3,8 @@ package me.glassbricks.schem
 import me.glassbricks.knbt.*
 
 
+typealias BitSequence = Iterable<Boolean>
+
 class BinaryEncoding<M>(
     val encoding: Map<M, Int>,
     val numBits: Int,
@@ -16,7 +18,6 @@ class BinaryEncoding<M>(
             seq.map { encoding[it]!! and (1 shl bit) != 0 }
         }
     }
-
 }
 
 @JvmInline
@@ -39,10 +40,10 @@ value class ItemStack private constructor(val count: Int) {
 }
 
 fun <M> encodeToItems(sequence: Iterable<M>, encoding: BinaryEncoding<M>): List<List<ItemStack>> =
-    encoding.encode(sequence).map {
+    encoding.encode(sequence).map { bitSeq ->
         buildList {
             var curStack = 0 // 0 == last was unstackable
-            for (bit in it) {
+            for (bit in bitSeq) {
                 if (bit) {
                     if (curStack != 0) add(ItemStack.stackable(curStack))
                     curStack = 0
@@ -60,42 +61,37 @@ fun <M> encodeToItems(sequence: Iterable<M>, encoding: BinaryEncoding<M>): List<
     }
 
 
-typealias BitSequence = Iterable<Boolean>
-
-const val CHEST_MAX_STACKS = 27
-
-data class ShulkerBox(val items: List<ItemStack>) {
+data class BinaryShulkerBox(val items: List<ItemStack>) {
     override fun toString(): String = items.joinToString(separator = ",", prefix = "Box(", postfix = ")")
 
     companion object {
-        const val MAX_STACKS = CHEST_MAX_STACKS
+        const val MAX_STACKS = CHEST_MAX
         const val MIN_STACKS = 3 // actually min items but 1 stack at least 1 item
-
     }
 }
 
 
-fun toShulkerBoxes(stacks: List<ItemStack>): List<ShulkerBox> {
-    val boxes = stacks.chunked(ShulkerBox.MAX_STACKS).mapTo(mutableListOf(), ::ShulkerBox)
+fun itemsToShulkerBoxes(stacks: List<ItemStack>): List<BinaryShulkerBox> {
+    val boxes = stacks.chunked(BinaryShulkerBox.MAX_STACKS).mapTo(mutableListOf(), ::BinaryShulkerBox)
     // ensure last box has minimum amount items
     val last = boxes.last()
     val lastCount = last.items.count()
-    if (lastCount < ShulkerBox.MIN_STACKS) {
-        val toMove = ShulkerBox.MIN_STACKS - lastCount
+    if (lastCount < BinaryShulkerBox.MIN_STACKS) {
+        val toMove = BinaryShulkerBox.MIN_STACKS - lastCount
         val secondToLast = boxes[boxes.lastIndex - 1]
         val newSecondToLast = secondToLast.items.dropLast(toMove)
         val newLast = secondToLast.items.takeLast(toMove) + last.items
 
         boxes.apply {
-            set(lastIndex - 1, ShulkerBox(newSecondToLast))
-            set(lastIndex, ShulkerBox(newLast))
+            set(lastIndex - 1, BinaryShulkerBox(newSecondToLast))
+            set(lastIndex, BinaryShulkerBox(newLast))
         }
     }
     return boxes
 }
 
-class ShulkerRom(
-    val channels: List<List<ShulkerBox>>
+class BinaryShulkerRom(
+    val channels: List<List<BinaryShulkerBox>>
 ) {
     override fun toString(): String {
         return channels.toString()
@@ -104,12 +100,11 @@ class ShulkerRom(
 
 //fun <M : RsInput> Iterable<M>.toRom(encoding: Encoding<M>): ShulkerRom = toRom(this, encoding)
 
-fun <M> toRom(sequence: Iterable<M>, encoding: BinaryEncoding<M>): ShulkerRom = ShulkerRom(
-    encodeToItems(sequence, encoding).map(::toShulkerBoxes)
+fun <M> encodeBinaryShulkerRom(sequence: Iterable<M>, encoding: BinaryEncoding<M>): BinaryShulkerRom = BinaryShulkerRom(
+    encodeToItems(sequence, encoding).map(::itemsToShulkerBoxes)
 )
 
-fun stackedChests(rom: ShulkerRom): SchemFile {
-
+fun stackedChestsSchem(rom: BinaryShulkerRom): SchemFile {
     val numChests = rom.channels.size
 
     return SchemFile(
@@ -131,7 +126,7 @@ fun stackedChests(rom: ShulkerRom): SchemFile {
     )
 }
 
-fun schem1(rom: ShulkerRom): SchemFile {
+fun schem1(rom: BinaryShulkerRom): SchemFile {
     require(rom.channels.size == 3)
 
     return SchemFile(
@@ -185,7 +180,7 @@ fun noBoxesSchem(channels: List<List<ItemStack>>): SchemFile {
     )
 }
 
-private fun List<ShulkerBox>.toDoubleChest(
+private fun List<BinaryShulkerBox>.toDoubleChest(
     chestIdx: Int,
     getChestPos: (chestSide: Int) -> IntArray,
 ): List<ChestBlockEntity> {
@@ -208,18 +203,17 @@ private inline fun <T> List<T>.toDoubleChest(
     getChestPos: (chestSide: Int) -> IntArray,
     elementToItem: (slot: Int, element: T) -> Item,
 ): List<ChestBlockEntity> {
-    require(size <= 2 * CHEST_MAX_STACKS) { "Too many items to fit in a double chest" }
+    require(size <= 2 * CHEST_MAX) { "Too many items to fit in a double chest" }
     return listOf(
         ChestBlockEntity(
-            Items = take(CHEST_MAX_STACKS).mapIndexed(elementToItem),
+            Items = take(CHEST_MAX).mapIndexed(elementToItem),
             Pos = getChestPos(0)
         ),
         ChestBlockEntity(
-            Items = drop(CHEST_MAX_STACKS).mapIndexed(elementToItem),
+            Items = drop(CHEST_MAX).mapIndexed(elementToItem),
             Pos = getChestPos(1)
         ),
     )
-
 }
 
 // hard coded for now
@@ -268,7 +262,7 @@ private class Itemizer {
     }
 }
 
-private fun ShulkerBox.toItem(
+private fun BinaryShulkerBox.toItem(
     slot: Int,
     boxId: String,
 ): Item {

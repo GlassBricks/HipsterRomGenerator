@@ -1,6 +1,6 @@
-package hipster.megafold
+package ogMegafoldHipster
 
-import hipster.megafold.Move.*
+import ogMegafoldHipster.Move.*
 import me.glassbricks.schem.BinaryEncoding
 import me.glassbricks.sequence.*
 import me.glassbricks.splitCamelCase

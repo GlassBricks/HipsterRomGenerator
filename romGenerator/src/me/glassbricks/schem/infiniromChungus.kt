@@ -1,10 +1,38 @@
 package me.glassbricks.schem
 
-import kotlinx.serialization.serializer
 import me.glassbricks.knbt.compoundTag
 
 // up to 27*27 = 729 items per cart
 
+fun <T> chungusRomSchem(
+    moves: List<T>,
+    encoding: Map<T, Int>,
+    waitingMove: T? = null,
+): SchemFile {
+    val ss = encodeToSignalStrengths(moves, encoding)
+    val waitingSS = waitingMove?.let { SignalStrength(encoding.getValue(it)) }
+    val rom = simpleChungusRom(ss, waitingSS)
+    return toChungusRomSchem(rom)
+}
+
+fun <T> waitOptimizedChungusRomSchem(
+    moves: List<T>,
+    encoding: Map<T, Int>,
+    waitingMove: T,
+): SchemFile {
+    val ss = encodeToSignalStrengths(moves, encoding)
+    val waitingSS = SignalStrength(encoding.getValue(waitingMove))
+    val rom = waitOptimizedChungusRom(ss, waitingSS)
+    return toChungusRomSchem(rom)
+}
+
+
+const val MinBoxSize = 3
+const val MinInLastBox = 10
+const val MinRecordsPerCart = (MinBoxSize * (CHEST_MAX - 1)) + MinInLastBox
+const val MaxRecordsPerCart = CHEST_MAX * CHEST_MAX
+const val MinCarts = 3
+const val MinRecordsPerRom = MinRecordsPerCart * MinCarts
 
 private fun partitionWithRestrictions(
     numItems: Int,
@@ -31,19 +59,11 @@ private fun partitionWithRestrictions(
 
 fun divCeil(a: Int, b: Int): Int = (a + b - 1) / b
 
-
-const val MinBoxSize = 3
-const val MinInLastBox = 10
-const val MinRecordsPerCart = (MinBoxSize * (ChestSize - 1)) + MinInLastBox
-const val MaxRecordsPerCart = ChestSize * ChestSize
-const val MinCarts = 3
-const val MinRecordsPerRom = MinRecordsPerCart * MinCarts
-
 private fun partitionRecordsToCarts(
     numRecords: Int,
 ): List<Int> {
     require(numRecords >= MinRecordsPerRom)
-    val maxPerCart = ChestSize * ChestSize
+    val maxPerCart = CHEST_MAX * CHEST_MAX
     val numCarts = divCeil(numRecords, maxPerCart).coerceAtLeast(MinCarts)
 
     return partitionWithRestrictions(
@@ -58,29 +78,16 @@ private fun partitionRecordsToShulkerBoxes(numRecords: Int): List<Int> {
     require(numRecords >= MinRecordsPerCart)
     return partitionWithRestrictions(
         numItems = numRecords,
-        numPartitions = ChestSize,
+        numPartitions = CHEST_MAX,
         minPerPartition = MinBoxSize,
-        maxPerPartition = ChestSize,
+        maxPerPartition = CHEST_MAX,
     )
-}
-
-fun List<SignalStrength>.padToMinimum(
-    minSize: Int,
-    waitingMove: SignalStrength?,
-): List<SignalStrength> {
-
-    val numToPad = minSize - size
-    if (numToPad > 0) {
-        waitingMove ?: error("no waiting move provided")
-        return this + List(numToPad) { waitingMove }
-    }
-    return this
 }
 
 
 class ChungusRom(val carts: List<SSBoxes>)
 
-private fun simpleChungusRom(
+fun simpleChungusRom(
     ss: List<SignalStrength>,
     waitingMove: SignalStrength? = null,
 ): ChungusRom {
@@ -104,14 +111,14 @@ private fun simpleChungusRom(
     return ChungusRom(carts)
 }
 
-private fun waitOptimizedMergeRom(
+fun waitOptimizedChungusRom(
     ss: List<SignalStrength>,
     waitingMove: SignalStrength,
 ): ChungusRom {
     require(ss.size > MinRecordsPerRom)
-    val maxPerCart = ChestSize * ChestSize
+    val maxPerCart = CHEST_MAX * CHEST_MAX
     val numCarts = divCeil(ss.size, maxPerCart).coerceAtLeast(MinCarts)
-    val numBoxes = numCarts * ChestSize
+    val numBoxes = numCarts * CHEST_MAX
 
     // greedily divide boxes whenever there's a waiting move, with (at least min size + 1) for each box
     fun initialDivision(
@@ -140,11 +147,11 @@ private fun waitOptimizedMergeRom(
     val split = initialDivision.flatMap { box ->
         buildList {
             var i = 0
-            while ((box.size - i) > ChestSize) {
+            while ((box.size - i) > CHEST_MAX) {
 //                add(box.subList(i, i + ChestSize))
 //                i += ChestSize
-                val remainingNumItems = (box.size - i - ChestSize)
-                val maxCanTake = maxOf(ChestSize, remainingNumItems - MinBoxSize)
+                val remainingNumItems = (box.size - i - CHEST_MAX)
+                val maxCanTake = maxOf(CHEST_MAX, remainingNumItems - MinBoxSize)
                 add(box.subList(i, i + maxCanTake))
                 i += maxCanTake
             }
@@ -165,7 +172,7 @@ private fun waitOptimizedMergeRom(
         if (
             numMergesNeeded > 0 &&
             merge.isNotEmpty()
-            && merge.last().size + item.size <= ChestSize
+            && merge.last().size + item.size <= CHEST_MAX
         ) {
             merge.add(merge.removeLast() + item)
             numMergesNeeded--
@@ -175,9 +182,9 @@ private fun waitOptimizedMergeRom(
     }
 
     // assert _chests_ (groups of boxes have min size)
-    // not actually handled by alg, we just assert... and hope we don't get unlucky
+    // not actually handled, we just assert and hope we don't get unlucky
 
-    val chestSizes = merge.windowed(ChestSize, ChestSize) { it.toList() }
+    val chestSizes = merge.windowed(CHEST_MAX, CHEST_MAX) { it.toList() }
 
     require(chestSizes.all { it.sumOf { it.size } >= MinRecordsPerCart })
 
@@ -202,23 +209,17 @@ private fun waitOptimizedMergeRom(
 }
 
 
-private fun chungusRomToSchematic(rom: ChungusRom): SchemFile {
+private fun toChungusRomSchem(rom: ChungusRom): SchemFile {
     val entities = rom.carts.map {
         val chestItems = it.boxes.mapIndexed { index, indexChest ->
-            val items = indexChest.sses.mapIndexed { indexBox, ss ->
-                Item(
-                    Slot = indexBox.toByte(),
-                    id = ssToRecord[ss.ss]!!,
-                    Count = 1,
-                )
-            }
+            val items = indexChest.toRecordItems()
             Item(
                 Slot = index.toByte(),
                 id = "cyan_shulker_box",
                 Count = 1,
                 tag = compoundTag {
                     "BlockEntityTag" {
-                        "Items" eq nbt.encodeToTag(serializer(), items)
+                        "Items" eq nbt.encodeToTag(items)
                     }
                 }
             )
@@ -242,27 +243,4 @@ private fun chungusRomToSchematic(rom: ChungusRom): SchemFile {
         Entities = entities,
         DataVersion = DataVersions.v1_19_4,
     )
-}
-
-
-fun <T> chungusRomSchem(
-    moves: List<T>,
-    encoding: Map<T, Int>,
-    waitingMove: T? = null,
-): SchemFile {
-    val ss = toSignalStrengths(moves, encoding)
-    val waitingSS = waitingMove?.let { SignalStrength(encoding.getValue(it)) }
-    val rom = simpleChungusRom(ss, waitingSS)
-    return chungusRomToSchematic(rom)
-}
-
-fun <T> waitOptimizedChungusRomSchem(
-    moves: List<T>,
-    encoding: Map<T, Int>,
-    waitingMove: T,
-): SchemFile {
-    val ss = toSignalStrengths(moves, encoding)
-    val waitingSS = SignalStrength(encoding.getValue(waitingMove))
-    val rom = waitOptimizedMergeRom(ss, waitingSS)
-    return chungusRomToSchematic(rom)
 }

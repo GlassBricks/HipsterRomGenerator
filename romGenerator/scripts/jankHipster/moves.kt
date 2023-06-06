@@ -1,6 +1,6 @@
-package hipster.jank
+package jankHipster
 
-import hipster.jank.Move.*
+import jankHipster.Move.*
 import me.glassbricks.sequence.RsSequenceVisitor
 import me.glassbricks.splitCamelCase
 

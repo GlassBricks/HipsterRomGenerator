@@ -1,9 +1,9 @@
-package hipster.jank
+package jankHipster
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.schem.toCartSchem
+import me.glassbricks.schem.getInfinirom1Schem
 import me.glassbricks.sequence.getSequence
-import schem.writeSchematic
+import me.glassbricks.schem.writeSchematic
 import java.io.File
 
 
@@ -22,7 +22,7 @@ class MakeSchems : StringSpec({
 //            fullRow3()
 //        }
         val seq = List(20) { Move.t4 }
-        val schem = toCartSchem(
+        val schem = getInfinirom1Schem(
             seq,
             encoding1
         )
@@ -30,13 +30,13 @@ class MakeSchems : StringSpec({
     }
     "6x6 schem" {
         val seq = getSequence { seq6() }
-        val schem = toCartSchem(seq, encoding1)
-        writeSchematic(schem, File("6x6.schem"))
+        val schem = getInfinirom1Schem(seq, encoding1)
+        writeSchematic(schem, File("templates/6x6.schem"))
     }
 
     "7x7 schem" {
         val seq = getSequence { seq7() }
-        val schem = toCartSchem(seq, encoding1)
+        val schem = getInfinirom1Schem(seq, encoding1)
         writeSchematic(schem, File("7x7.schem"))
     }
 
@@ -45,13 +45,13 @@ class MakeSchems : StringSpec({
             fullDoor(7)
         }.build()
 
-        val schem = toCartSchem(seq, encoding1)
+        val schem = getInfinirom1Schem(seq, encoding1)
         writeSchematic(schem, File("7x7new.schem"))
     }
 
     "row7 only schem" {
         val seq = getSequence { row7() }
-        val schem = toCartSchem(seq, encoding1)
+        val schem = getInfinirom1Schem(seq, encoding1)
         writeSchematic(schem, File("row7.schem"))
     }
 
@@ -63,7 +63,7 @@ class MakeSchems : StringSpec({
     "row7 new" {
         val seq = HipSequences().apply { row(7) }.build()
 
-        val schem = toCartSchem(seq, encoding1)
+        val schem = getInfinirom1Schem(seq, encoding1)
         writeSchematic(schem, File("row7new.schem"))
     }
 
@@ -75,13 +75,13 @@ class MakeSchems : StringSpec({
     "row8 new only" {
         val seq = HipSequences(nObs = 3, nFolds = 2).apply { row(8) }.build()
 
-        val schem = toCartSchem(seq, encoding2)
+        val schem = getInfinirom1Schem(seq, encoding2)
         writeSchematic(schem, File("row8new.schem"))
     }
 
     "8x8 new" {
         val seq = HipSequences(nObs = 3, nFolds = 2).apply { +Move.t4; fullDoor(8) }.build()
-        val schem = toCartSchem(seq, encoding2)
+        val schem = getInfinirom1Schem(seq, encoding2)
         writeSchematic(schem, File("8x8new.schem"))
     }
 
@@ -98,13 +98,13 @@ class MakeSchems : StringSpec({
     "row9 new only" {
         val seq = HipSequences(nObs = 3, nFolds = 2).apply { row(9) }.build()
 
-        val schem = toCartSchem(seq, encoding2)
+        val schem = getInfinirom1Schem(seq, encoding2)
         writeSchematic(schem, File("row9new.schem"))
     }
 
     "9x9 new" {
         val seq = HipSequences(nObs = 3, nFolds = 2).apply { +Move.t4; fullDoor(9) }.build()
-        val schem = toCartSchem(seq, encoding2)
+        val schem = getInfinirom1Schem(seq, encoding2)
         writeSchematic(schem, File("9x9new.schem"))
     }
 

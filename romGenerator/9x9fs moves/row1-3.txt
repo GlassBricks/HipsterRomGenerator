@@ -13,7 +13,7 @@ dpe
 8 pink
 purple # height 0
 17 wait
-purple
+purple # end    0
 dpe
 tpe
 lb4t

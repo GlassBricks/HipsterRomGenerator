@@ -1,4 +1,4 @@
-package hipster.megafold
+package ogMegafoldHipster
 
 import io.kotest.core.spec.style.StringSpec
 import me.glassbricks.schem.BinaryEncoding

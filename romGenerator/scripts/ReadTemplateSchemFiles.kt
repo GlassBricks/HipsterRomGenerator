@@ -1,5 +1,3 @@
-package schem
-
 import io.kotest.core.spec.style.StringSpec
 import me.glassbricks.knbt.Nbt
 import java.io.File
@@ -7,19 +5,19 @@ import java.util.zip.GZIPInputStream
 
 class ReadTemplateSchemFiles : StringSpec({
     "read template 1" {
-        readFile("rom-template.schem")
+        readFile("templates/rom-template.schem")
     }
     "read template 2" {
-        readFile("rom-template-2.schem")
+        readFile("templates/rom-template-2.schem")
     }
     "read carts" {
-        readFile("carts.schem")
+        readFile("templates/carts.schem")
     }
     "read 6x6 schem" {
-        readFile("6x6.schem")
+        readFile("templates/6x6.schem")
     }
     "read chungus" {
-        readFile("chungus-rom-template.schem", true)
+        readFile("templates/chungus-rom-template.schem", true)
     }
 })
 

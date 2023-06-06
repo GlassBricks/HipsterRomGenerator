@@ -1,15 +1,13 @@
-package hipster.chungus
+package chungusHipster
 
 import io.kotest.core.spec.style.StringSpec
 import me.glassbricks.schem.chungusRomSchem
 import me.glassbricks.schem.waitOptimizedChungusRomSchem
-import schem.writeSchematic
+import me.glassbricks.schem.writeSchematic
 import java.io.File
 
 
 class MakeSchems : StringSpec({
-
-
     "row 9 only schem" {
         val seq = getChungusSequence { row(9) }
         val schem = chungusRomSchem(
