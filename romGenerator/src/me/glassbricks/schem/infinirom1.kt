@@ -2,8 +2,9 @@ package me.glassbricks.schem
 
 import kotlin.math.ceil
 
+// up to 1 item per cart
 
-val ssToNumItems = intArrayOf(
+val ssToCartItems = intArrayOf(
     0,
     1,
     1 * 64 + 60,
@@ -26,7 +27,7 @@ fun getCartWithSs(
     ss: Int,
     pos: List<Double>,
 ): Entity {
-    val numItems = ssToNumItems[ss]
+    val numItems = ssToCartItems[ss]
 //    val numFullStacks = numItems / 64
 //    val numItemsInLastStack = numItems % 64
     // div 64, rounded up

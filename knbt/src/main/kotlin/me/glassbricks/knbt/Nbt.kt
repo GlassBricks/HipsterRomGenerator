@@ -1,14 +1,10 @@
 package me.glassbricks.knbt
 
-import kotlinx.serialization.BinaryFormat
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.*
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import java.io.*
 
-@OptIn(ExperimentalSerializationApi::class)
 sealed class Nbt(internal val conf: NbtConf) : BinaryFormat {
     companion object Default : Nbt(NbtConf())
 
@@ -32,6 +28,10 @@ sealed class Nbt(internal val conf: NbtConf) : BinaryFormat {
         }
     }
 
+    inline fun <reified T> encodeToStream(stream: OutputStream, value: T) {
+        encodeToStream(stream, serializersModule.serializer(), value)
+    }
+
     fun <T> decodeFromStream(stream: InputStream, deserializer: DeserializationStrategy<T>): T {
         return DataInputStream(stream.buffered()).use {
             NbtBinaryDecoder(this, it).run {
@@ -41,6 +41,10 @@ sealed class Nbt(internal val conf: NbtConf) : BinaryFormat {
         }
     }
 
+    inline fun <reified T> decodeFromStream(stream: InputStream): T {
+        return decodeFromStream(stream, serializersModule.serializer())
+    }
+
     fun <T> encodeToTag(serializer: SerializationStrategy<T>, value: T): Tag {
         NbtRootTagEncoder(this).run {
             encodeSerializableValue(serializer, value)
@@ -48,10 +52,19 @@ sealed class Nbt(internal val conf: NbtConf) : BinaryFormat {
         }
     }
 
+    inline fun <reified T> encodeToTag(value: T): Tag {
+        return encodeToTag(serializersModule.serializer(), value)
+    }
+
+
     fun <T> decodeFromTag(deserializer: DeserializationStrategy<T>, tag: Tag): T {
         return NbtRootTagDecoder(this, tag).run {
             decodeSerializableValue(deserializer)
         }
+    }
+
+    inline fun <reified T> decodeFromTag(tag: Tag): T {
+        return decodeFromTag(serializersModule.serializer(), tag)
     }
 
     fun decodeToTag(binary: ByteArray): Tag {

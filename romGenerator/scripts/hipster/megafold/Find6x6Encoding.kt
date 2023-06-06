@@ -1,8 +1,8 @@
 package hipster.megafold
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.Encoding
-import me.glassbricks.encodeToItems
+import me.glassbricks.schem.BinaryEncoding
+import me.glassbricks.schem.encodeToItems
 
 class Find6x6Encoding : StringSpec({
     "print sequence" {
@@ -37,7 +37,7 @@ fun findMinimalEncoding(
             }
         }
         .forEach { encodingMap ->
-            val encoding = Encoding(encodingMap, 3)
+            val encoding = BinaryEncoding(encodingMap, 3)
             val stackLists = encodeToItems(sequence, encoding)
             val stacksNeeded = stackLists.maxOf { it.size }
             val stat = EncodingStat(encodingMap, stacksNeeded)

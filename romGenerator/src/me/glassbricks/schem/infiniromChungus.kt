@@ -1,15 +1,9 @@
 package me.glassbricks.schem
 
 import kotlinx.serialization.serializer
-import me.glassbricks.knbt.Nbt
 import me.glassbricks.knbt.compoundTag
 
-
-@JvmInline
-value class SignalStrength(val ss: Int)
-
-
-const val ChestSize = 27
+// up to 27*27 = 729 items per cart
 
 
 private fun partitionWithRestrictions(
@@ -70,11 +64,12 @@ private fun partitionRecordsToShulkerBoxes(numRecords: Int): List<Int> {
     )
 }
 
-private fun List<SignalStrength>.padToMinimum(
+fun List<SignalStrength>.padToMinimum(
+    minSize: Int,
     waitingMove: SignalStrength?,
 ): List<SignalStrength> {
 
-    val numToPad = MinRecordsPerRom - size
+    val numToPad = minSize - size
     if (numToPad > 0) {
         waitingMove ?: error("no waiting move provided")
         return this + List(numToPad) { waitingMove }
@@ -83,18 +78,13 @@ private fun List<SignalStrength>.padToMinimum(
 }
 
 
-private class RecordBox(val records: List<SignalStrength>)
+class ChungusRom(val carts: List<SSBoxes>)
 
-private class BoxCart(val boxes: List<RecordBox>)
-
-private class ChungusRom(val carts: List<BoxCart>)
-
-
-private fun ssToChungusRom(
+private fun simpleChungusRom(
     ss: List<SignalStrength>,
     waitingMove: SignalStrength? = null,
 ): ChungusRom {
-    val actualSS = ss.padToMinimum(waitingMove)
+    val actualSS = ss.padToMinimum(MinRecordsPerRom, waitingMove)
 
     var iRom = 0
     val cartSizes = partitionRecordsToCarts(actualSS.size)
@@ -106,10 +96,9 @@ private fun ssToChungusRom(
         val boxes = partitionRecordsToShulkerBoxes(numInCart).map { numInBox ->
             val boxSS = cartSS.subList(iCart, iCart + numInBox)
             iCart += numInBox
-            RecordBox(boxSS)
+            SSBox(boxSS)
         }
-        BoxCart(boxes)
-
+        SSBoxes(boxes)
     }
 
     return ChungusRom(carts)
@@ -125,8 +114,28 @@ private fun waitOptimizedMergeRom(
     val numBoxes = numCarts * ChestSize
 
     // greedily divide boxes whenever there's a waiting move, with (at least min size + 1) for each box
+    fun initialDivision(
+        ss: List<SignalStrength>,
+        minBoxSize: Int,
+    ): MutableList<List<SignalStrength>> {
+        val initialDivision = mutableListOf<List<SignalStrength>>()
 
-    val initialDivision = initialDivision(ss, MinBoxSize + 1, waitingMove)
+        var nextStart = 0
+        for (endPoint in 0 until (ss.size - minBoxSize)) {
+            // endpoint is inclusive
+            val cutSize = endPoint - nextStart + 1
+            if (ss[endPoint] == waitingMove && cutSize >= minBoxSize) {
+                // cut from lastIndex to index, to index included
+                initialDivision.add(ss.subList(nextStart, endPoint + 1))
+                nextStart = endPoint + 1
+            }
+        }
+        initialDivision.add(ss.subList(nextStart, ss.size))
+        println(initialDivision.size)
+        return initialDivision
+    }
+
+    val initialDivision = initialDivision(ss, MinBoxSize + 1)
 
     val split = initialDivision.flatMap { box ->
         buildList {
@@ -180,64 +189,23 @@ private fun waitOptimizedMergeRom(
                 numOptimized++
                 it.subList(0, it.lastIndex)
             } else it
-            RecordBox(actual)
+            SSBox(actual)
         }
-        BoxCart(boxes)
+        SSBoxes(boxes)
     }
 
     println("optimized away $numOptimized waiting moves")
 
 
     return ChungusRom(carts)
-}
 
-private fun initialDivision(
-    ss: List<SignalStrength>,
-    minBoxSize: Int,
-    waitingMove: SignalStrength
-): MutableList<List<SignalStrength>> {
-    val initialDivision = mutableListOf<List<SignalStrength>>()
-
-    var nextStart = 0
-    for (endPoint in 0 until (ss.size - minBoxSize)) {
-        // endpoint is inclusive
-        val cutSize = endPoint - nextStart + 1
-        if (ss[endPoint] == waitingMove && cutSize >= minBoxSize) {
-            // cut from lastIndex to index, to index included
-            initialDivision.add(ss.subList(nextStart, endPoint + 1))
-            nextStart = endPoint + 1
-        }
-    }
-    initialDivision.add(ss.subList(nextStart, ss.size))
-    println(initialDivision.size)
-    return initialDivision
 }
 
 
-private val ssToRecord = listOf(
-    null,
-    "music_disc_13",
-    "music_disc_cat",
-    "music_disc_blocks",
-    "music_disc_chirp",
-    "music_disc_far",
-    "music_disc_mall",
-    "music_disc_mellohi",
-    "music_disc_stal",
-    "music_disc_strad",
-    "music_disc_ward",
-    "music_disc_11",
-    "music_disc_wait",
-    "music_disc_pigstep",
-    "music_disc_otherside",
-    "music_disc_5",
-).map { it?.let { "minecraft:$it" } }
-
-val nbt = Nbt { encodeDefaults = true }
 private fun chungusRomToSchematic(rom: ChungusRom): SchemFile {
     val entities = rom.carts.map {
         val chestItems = it.boxes.mapIndexed { index, indexChest ->
-            val items = indexChest.records.mapIndexed { indexBox, ss ->
+            val items = indexChest.sses.mapIndexed { indexBox, ss ->
                 Item(
                     Slot = indexBox.toByte(),
                     id = ssToRecord[ss.ss]!!,
@@ -277,26 +245,18 @@ private fun chungusRomToSchematic(rom: ChungusRom): SchemFile {
 }
 
 
-private fun <T> toSignalStrengths(
-    moves: List<T>,
-    encoding: Map<T, Int>,
-): List<SignalStrength> {
-    return moves.map { SignalStrength(encoding.getValue(it)) }
-}
-
-
-fun <T> encodeToChungusRom(
+fun <T> chungusRomSchem(
     moves: List<T>,
     encoding: Map<T, Int>,
     waitingMove: T? = null,
 ): SchemFile {
     val ss = toSignalStrengths(moves, encoding)
     val waitingSS = waitingMove?.let { SignalStrength(encoding.getValue(it)) }
-    val rom = ssToChungusRom(ss, waitingSS)
+    val rom = simpleChungusRom(ss, waitingSS)
     return chungusRomToSchematic(rom)
 }
 
-fun <T> encodeToWaitOptimizedChungusRom(
+fun <T> waitOptimizedChungusRomSchem(
     moves: List<T>,
     encoding: Map<T, Int>,
     waitingMove: T,

@@ -1,7 +1,7 @@
 package hipster.megafold
 
 import hipster.megafold.Move.*
-import me.glassbricks.Encoding
+import me.glassbricks.schem.BinaryEncoding
 import me.glassbricks.sequence.*
 import me.glassbricks.splitCamelCase
 import kotlin.math.abs
@@ -198,7 +198,7 @@ val special6x6Sequence = normal6x6Sequence.map {
     }
 }
 
-val glassHipster11Encoding = Encoding(
+val glassHipster11Encoding = BinaryEncoding(
     mapOf(
         MorePistons to 0b011,
         ClearPistons to 0b010,

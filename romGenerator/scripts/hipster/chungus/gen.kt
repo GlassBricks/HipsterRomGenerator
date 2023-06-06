@@ -1,8 +1,8 @@
 package hipster.chungus
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.schem.encodeToChungusRom
-import me.glassbricks.schem.encodeToWaitOptimizedChungusRom
+import me.glassbricks.schem.chungusRomSchem
+import me.glassbricks.schem.waitOptimizedChungusRomSchem
 import schem.writeSchematic
 import java.io.File
 
@@ -12,7 +12,7 @@ class MakeSchems : StringSpec({
 
     "row 9 only schem" {
         val seq = getChungusSequence { row(9) }
-        val schem = encodeToChungusRom(
+        val schem = chungusRomSchem(
             seq,
             ChungusEncoding,
         )
@@ -26,7 +26,7 @@ class MakeSchems : StringSpec({
 
     "row 10 only schem" {
         val seq = getChungusSequence { row(10) }
-        val schem = encodeToChungusRom(
+        val schem = chungusRomSchem(
             seq,
             ChungusEncoding,
         )
@@ -40,7 +40,7 @@ class MakeSchems : StringSpec({
 
     "full door 10 schem" {
         val seq = getChungusSequence { fullDoor(10, false) }
-        val schem = encodeToChungusRom(
+        val schem = chungusRomSchem(
             seq,
             ChungusEncoding,
         )
@@ -53,7 +53,7 @@ class MakeSchems : StringSpec({
 
     "full door 10 maybe optimized schem" {
         val seq = getChungusSequence { fullDoor(10, false) }
-        val schem = encodeToWaitOptimizedChungusRom(
+        val schem = waitOptimizedChungusRomSchem(
             seq,
             ChungusEncoding,
             Move.wait,
