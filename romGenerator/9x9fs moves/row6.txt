@@ -11,15 +11,15 @@ dpe
 d
 tpe
 3 pink
-purple
-23 wait
+purple # height 3
+22 wait
 purple
 d
 dpe
 lb1t
 dpe
 15 pink
-purple
+purple # height 0
 17 wait
 purple
 dpe
@@ -29,12 +29,12 @@ tpe
 lb1t
 tpe
 pink
-purple
+purple # height 1
 19 wait
 purple
 pink
-purple
-18 wait
+purple # height 2
+17 wait
 tpe
 d
 dpe
@@ -47,12 +47,12 @@ tpe
 lb1t
 dpe
 16 pink
-purple
-e ##do retraction during purple (its OK)
+purple # height 0
+e
 d
 f
 e
-13 wait ##wait for purple
+13 wait
 purple
 dpe
 tpe
@@ -61,7 +61,7 @@ tpe
 lb1t
 tpe
 pink
-purple
+purple # height 1
 19 wait
 purple
 tpe
@@ -75,8 +75,8 @@ tpe
 lb1t
 dpe
 17 pink
-purple
-e ##do retraction during purple (its OK)
+purple # height 0
+e
 d
 15 wait
 purple

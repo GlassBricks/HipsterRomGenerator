@@ -11,7 +11,7 @@ dpe
 lb1t
 dpe
 8 pink
-purple
+purple # height 0
 17 wait
 purple
 dpe

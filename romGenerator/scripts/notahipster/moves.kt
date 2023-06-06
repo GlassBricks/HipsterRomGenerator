@@ -66,7 +66,7 @@ val moves = fileNames.map {
 
 val encoding = Move.values().associateWith { it.ss }
 
-val version = "8"
+val version = "13"
 
 class GenSchem : StringSpec({
     beforeSpec {
@@ -168,11 +168,11 @@ class AnalyzeSeq : StringSpec({
         val schemFile = waitOptimizedRecordRomSchem(seq, encoding, Move.wait)
         writeSchematic(schemFile, "9x9fs out/wait-rom.schem")
     }
-    "reencode waits" {
-        val waits = intArrayOf(17, 19, 20, 22, 23, 25, 26)
+    "annotate seq" {
+        val waits = intArrayOf(17, 19, 20, 22, 23, 24, 26)
         var curPinkPos = -8 + 18
 
-        data class MoveCount(val move: Move, var count: Int)
+        data class MoveCount(val move: Move, val count: Int, var comment: String? = null)
 
         for (filename in fileNames) {
             val f = File("9x9fs moves/$filename")
@@ -184,6 +184,7 @@ class AnalyzeSeq : StringSpec({
 
 
             var lastWait: MoveCount? = null
+            var lastPurple: MoveCount? = null
             var lastPurpleIndex = -1
 
             val newList = mutableListOf<MoveCount>()
@@ -199,15 +200,23 @@ class AnalyzeSeq : StringSpec({
                     Move.purple -> {
                         if (lastPurpleIndex == -1) {
                             lastPurpleIndex = i
+                            lastPurple = cur
                             lastWait = null
                         } else {
+                            lastPurple!!.comment = "height ${curPinkPos}"
+
                             val nWaits = i - lastPurpleIndex - 1
                             val expected = waits[curPinkPos]
 
                             val diff = nWaits - expected
-                            lastWait!!.count -= diff
+//                            lastWait!!.count -= diff
+                            val newCount = lastWait!!.count - diff
+                            if(newCount!=lastWait!!.count) {
+                                lastWait!!.comment = "maybe $newCount"
+                            }
 
                             lastPurpleIndex = -1
+                            lastPurple = null
                         }
                     }
 
@@ -222,14 +231,18 @@ class AnalyzeSeq : StringSpec({
             }
 
             // write new file
-            val fileNoPath = filename.substringBefore('.')
-            val newFile = File("9x9fs moves/$fileNoPath-2.txt")
+            val newFile = File("9x9fs moves/$filename")
 
-            newFile.writeText(newList.joinToString("\n") { (move, n) ->
-                if (n == 1) {
+            newFile.writeText(newList.joinToString("\n") { (move, n, comment) ->
+                val part1 = if (n == 1) {
                     move.toString()
                 } else {
-                    "$move $n"
+                    "$n $move"
+                }
+                if(comment != null) {
+                    "$part1 # $comment"
+                } else {
+                    part1
                 }
             })
         }

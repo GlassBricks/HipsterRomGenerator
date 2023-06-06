@@ -3,7 +3,7 @@ dpe
 lb1t
 tpe
 pink
-purple
+purple # height 1
 19 wait
 purple
 tpe
@@ -17,7 +17,7 @@ tpe
 lb1t
 dpe
 17 pink
-purple
+purple # height 0
 e
 d
 15 wait
