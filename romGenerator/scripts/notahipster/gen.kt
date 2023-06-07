@@ -78,7 +78,7 @@ class GenSchem : StringSpec({
                 "upTo-${fileName.substringBefore('.')}.schem"
 
 
-            val schemFile = waitOptimizedRecordRomSchem(movesCumulative.let(::dispersePinks), encoding, Move.wait)
+            val schemFile = waitOptimizedRecordRomSchem2(movesCumulative.let(::dispersePinks))
 
 
             writeSchematic(schemFile, "9x9fs out/$newFileName")
@@ -89,17 +89,9 @@ class GenSchem : StringSpec({
             val elements = moves[i].value ?: continue
             val newFileName = fileName.substringBefore('.') + ".schem"
 
-            val schemFile = waitOptimizedRecordRomSchem(elements.let(::dispersePinks), encoding, Move.wait)
+            val schemFile = waitOptimizedRecordRomSchem2(elements.let(::dispersePinks))
             writeSchematic(schemFile, "9x9fs out/$newFileName")
         }
-    }
-})
-class GenOtherSchems: StringSpec({
-    "gen 7+8" {
-        val thisSeq = moves[3].value!! + moves[4].value!!
-
-        val schemFile = waitOptimizedRecordRomSchem(thisSeq, encoding, Move.wait)
-        writeSchematic(schemFile, "9x9fs out/row7+8.schem")
     }
 })
 

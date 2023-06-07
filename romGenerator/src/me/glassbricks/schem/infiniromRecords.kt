@@ -20,6 +20,29 @@ fun toFullSSBoxes(
 
 
 
+// in between chests, there are 2 free waiting moves
+// if on boundary there happens to be waiting moves, we can remove up to 2 of them
+fun toWaitOptimizedSSBoxes(
+    ss: List<SignalStrength>,
+    waitingMove: SignalStrength
+) = SSBoxes(buildList {
+    var lastI = 0
+    while (lastI < ss.size) {
+        val remaining = ss.size - lastI
+        if (remaining <= CHEST_MAX) {
+            add(
+                SSBox(ss.subList(lastI, ss.size).padToMinimum(CHEST_MAX, waitingMove))
+            )
+            break
+        }
+        add(SSBox(ss.subList(lastI, lastI + CHEST_MAX)))
+        lastI += CHEST_MAX
+        repeat(2) {
+            if (ss.getOrNull(lastI) == waitingMove) lastI++
+        }
+    }
+})
+
 fun toRecordChestRomSchem(ssBoxes: SSBoxes): SchemFile {
     val entities = ssBoxes.boxes.map { box ->
         Entity(

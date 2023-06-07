@@ -64,7 +64,7 @@ fun parseFile(file: File): List<Move> =
         }
 
 
-private val shouldDispersePinks = false
+private val shouldDispersePinks = true
 fun dispersePinks(seq: List<Move>): List<Move> {
     if (!shouldDispersePinks) return seq
     var inPurple = false
@@ -104,36 +104,63 @@ fun dispersePinks(seq: List<Move>): List<Move> {
     return result
 }
 
-// in between chests, there are 2 free waiting moves
-// if on boundary there happens to be waiting moves, we can remove up to 2 of them
-fun toWaitOptimizedSSBoxes(
-    ss: List<SignalStrength>,
-    waitingMove: SignalStrength
-) = SSBoxes(buildList {
-    var lastI = 0
-    while (lastI < ss.size) {
-        val remaining = ss.size - lastI
-        if (remaining <= CHEST_MAX) {
-            add(
-                SSBox(ss.subList(lastI, ss.size).padToMinimum(CHEST_MAX, waitingMove))
-            )
-            break
+
+// boundary of boxes count as 2 waiting moves
+// BUT waits only happen in between purples
+// if purples span a chest, can remove up to 2 wait moves ANYWHERE in between purples
+fun toWaitOptimizedSSBoxes2(moves: List<Move>): List<List<Move>> = buildList {
+    var curBox = mutableListOf<Move>()
+    var inPurple = false
+    var curPurpWaitBegin: Int? = null
+    var curPurpCanOpt = 2
+    var i = 0
+    var nRemoved = 0
+    while (i < moves.size) {
+        val move = moves[i++]
+        curBox.add(move)
+        if (move == Move.purple) {
+            inPurple = !inPurple
+            if (inPurple) {
+                curPurpCanOpt = 2
+                curPurpWaitBegin = null
+            }
+        } else if (move == Move.wait) {
+            curPurpWaitBegin = curPurpWaitBegin ?: curBox.lastIndex
         }
-        add(SSBox(ss.subList(lastI, lastI + CHEST_MAX)))
-        lastI += CHEST_MAX
-        repeat(2) {
-            if (ss.getOrNull(lastI) == waitingMove) lastI++
+        if (curBox.size == CHEST_MAX) {
+            if (inPurple) {
+                if (curPurpCanOpt > 0 && curPurpWaitBegin != null && moves.getOrNull(i) != Move.purple) {
+                    curBox.removeAt(curPurpWaitBegin)
+                    curPurpCanOpt--
+                    nRemoved++
+                    continue
+                }
+                while (curPurpCanOpt > 0 && moves.getOrNull(i) == Move.wait) {
+                    i++
+                    curPurpCanOpt--
+                    nRemoved++
+                }
+            }
+            add(curBox)
+            curBox = mutableListOf()
+            curPurpWaitBegin = null
         }
     }
-})
 
-fun <T> waitOptimizedRecordRomSchem(
-    moves: List<T>,
-    encoding: Map<T, Int>,
-    waitingMove: T
+    while (curBox.size < CHEST_MAX) {
+        curBox.add(Move.wait)
+    }
+    add(curBox)
+
+    println("removed $nRemoved wait moves")
+}
+
+fun waitOptimizedRecordRomSchem2(
+    moves: List<Move>,
 ): SchemFile {
-    val waitingSS = SignalStrength(encoding.getValue(waitingMove))
-    val ss = encodeToSignalStrengths(moves, encoding)
-    val rom = toWaitOptimizedSSBoxes(ss, waitingSS)
+    val boxes = toWaitOptimizedSSBoxes2(moves)
+    val rom = SSBoxes(
+        boxes.map { SSBox(it.map { SignalStrength(it.ss) }) }
+    )
     return toRecordChestRomSchem(rom)
 }

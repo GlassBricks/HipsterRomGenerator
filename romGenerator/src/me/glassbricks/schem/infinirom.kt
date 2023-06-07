@@ -72,15 +72,15 @@ fun SSBox.toRecordItems(): List<Item> = sses.mapIndexed { index, signalStrength 
     )
 }
 
-fun List<SignalStrength>.padToMinimum(
+fun <T>List<T>.padToMinimum(
     minSize: Int,
-    waitingMove: SignalStrength?,
-): List<SignalStrength> {
+    pad: T?,
+): List<T> {
 
     val numToPad = minSize - size
     if (numToPad > 0) {
-        waitingMove ?: error("no waiting move provided")
-        return this + List(numToPad) { waitingMove }
+        pad ?: error("no waiting move provided")
+        return this + List(numToPad) { pad }
     }
     return this
 }
