@@ -1,7 +1,6 @@
 package notahipster
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.schem.waitOptimizedRecordRomSchem
 import me.glassbricks.schem.writeSchematic
 import java.io.File
 
@@ -37,25 +36,8 @@ class AnalyzeSeq : StringSpec({
         }
     }
 
-    "gen wait rom" {
-        val waits = intArrayOf(17, 19, 20, 22, 23, 25)
-
-        val seq = waits.flatMap { n ->
-            buildList {
-                add(Move.purple)
-                repeat(n) { add(Move.wait) }
-                add(Move.purple)
-                add(Move.pink)
-                while (size < 27) add(Move.wait)
-            }
-        }
-
-        val schemFile = waitOptimizedRecordRomSchem(seq, encoding, Move.wait)
-        writeSchematic(schemFile, "9x9fs out/wait-rom.schem")
-    }
-
     "annotate seq" {
-        val waits = intArrayOf(17, 19, 20, 22, 24, 25, 27)
+        val waits = intArrayOf(17, 19, 20, 22, 23, 25, 27)
         var curPinkPos = -8 + 18
 
         fun annotateFile(

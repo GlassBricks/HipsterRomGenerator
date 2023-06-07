@@ -11,7 +11,7 @@ purple         # height 0
 purple         # end    0
 4 pink
 purple         # height 4
-13 wait
+12 wait
 dpe
 tpe
 lb4t

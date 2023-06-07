@@ -1,7 +1,6 @@
 package notahipster
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.schem.waitOptimizedRecordRomSchem
 import me.glassbricks.schem.writeSchematic
 import java.io.File
 import java.io.FileOutputStream
