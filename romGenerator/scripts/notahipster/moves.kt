@@ -3,6 +3,7 @@ package notahipster
 import java.io.File
 
 
+@Suppress("EnumEntryName")
 enum class Move(val ss: Int) {
     e(2),
     d(3),
@@ -20,7 +21,7 @@ enum class Move(val ss: Int) {
 
 val encoding = Move.values().associateWith { it.ss }
 
-data class MoveLine(val move: Move, val count: Int, var comment: String? = null) {
+data class MoveLine(val move: Move, var count: Int, var comment: String? = null) {
     init {
         require(count > 0)
     }
@@ -31,18 +32,24 @@ data class MoveLine(val move: Move, val count: Int, var comment: String? = null)
         append(move.name)
 
         if (comment != null) {
-            append(" # ").append(comment)
+            append(" ".repeat(15 - this.length))
+            append("# ").append(comment)
         }
     }
 }
 
 
 fun parseLine(line: String): MoveLine {
-    val comment = line.substringAfter('#', "").trim().takeIf { it.isNotBlank() }
+    val comment = line.substringAfterLast('#', "").trim().takeIf { it.isNotBlank() }
     val value = line.substringBefore('#').trim()
     if (' ' in value) {
         val (a, b) = value.split(' ')
-        return MoveLine(Move.valueOf(b), a.toInt(), comment)
+        return if (a.toIntOrNull() != null) {
+            MoveLine(Move.valueOf(b), a.toInt(), comment)
+        } else {
+            MoveLine(Move.valueOf(a), b.toInt(), comment)
+        }
+
     }
     return MoveLine(Move.valueOf(value), 1, comment)
 }
@@ -56,7 +63,9 @@ fun parseFile(file: File): List<Move> =
         }
 
 
+private val shouldDispersePinks = false
 fun dispersePinks(seq: List<Move>): List<Move> {
+    if(!shouldDispersePinks) return seq
     var inPurple = false
     val lastSeg = mutableListOf<Move>()
     val result = mutableListOf<Move>()

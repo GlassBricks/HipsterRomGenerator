@@ -55,7 +55,7 @@ class AnalyzeSeq : StringSpec({
     }
 
     "annotate seq" {
-        val waits = intArrayOf(17, 19, 20, 22, 23, 24, 26)
+        val waits = intArrayOf(17, 19, 20, 22, 24, 25, 27)
         var curPinkPos = -8 + 18
 
         fun annotateFile(
@@ -89,11 +89,13 @@ class AnalyzeSeq : StringSpec({
                             val expected = waits[curPinkPos]
 
                             val diff = nWaits - expected
-//                            lastWait!!.count -= diff
-                            val newCount = lastWait!!.count - diff
-                            if (newCount != lastWait!!.count) {
-                                lastWait!!.comment = "maybe $newCount"
-                            }
+
+                            lastWait!!.count -= diff
+
+//                            val newCount = lastWait!!.count - diff
+//                            if (newCount != lastWait!!.count) {
+//                                lastWait!!.comment = "maybe $newCount"
+//                            }
 
                             lastPurpleIndex = -1
                             lastPurple = null

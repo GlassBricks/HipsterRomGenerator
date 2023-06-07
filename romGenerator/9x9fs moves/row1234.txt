@@ -1,35 +1,28 @@
-f
-e
-dpe
-lb1t
-tpe
-pink
-pink
-purple         # height 2
-17 wait
 tpe
 d
 dpe
-purple         # end    2
 lb4t
 lb1t
 dpe
 d
 tpe
+d
+dpe
 lb1t
 dpe
-16 pink
+8 pink
 purple         # height 0
-e              # do retraction during purple (its OK)
-d
-f
-e
-13 wait        # wait for purple
+17 wait
 purple         # end    0
 dpe
 tpe
+lb4t
+lb1t
+dpe
 d
 tpe
+e
+dpe
 lb1t
 tpe
 pink
@@ -48,9 +41,9 @@ lb1t
 dpe
 17 pink
 purple         # height 0
-e              # do retraction during purple (its OK)
-d
 15 wait
+e
+d
 purple         # end    0
 dpe
 tpe

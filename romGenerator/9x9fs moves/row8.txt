@@ -2,16 +2,34 @@ g
 f
 dpe
 lb1t
-d
+e
 dpe
 lb1t
-dpe
-purple         # height 0
-17 wait
-purple         # end    0
+tpe
+pink
+purple         # height 1
+19 wait
+purple         # end    1
 4 pink
-purple         # height 4
-13 wait
+purple         # height 5
+15 wait
+tpe
+d
+dpe
+lb4t
+lb1t
+dpe
+d
+tpe
+lb1t
+dpe
+purple         # end    5
+13 pink
+purple         # height 0
+15 wait
+e
+d
+purple         # end    0
 dpe
 tpe
 lb4t
@@ -22,13 +40,52 @@ tpe
 e
 dpe
 lb1t
+d
+dpe
+lb4t
+lb1t
+dpe
+2 pink
+purple         # height 2
+20 wait
+purple         # end    2
+pink
+purple         # height 3
+13 wait        # (? should be 23 total)
+lb4t
+lb1t
+dpe
+d
+tpe
+d
+dpe
+lb1t
+dpe
+purple         # end    3
+15 pink
+purple         # height 0
+17 wait
+purple         # end    0
+dpe
+tpe
+lb4t
+4 pink
+purple         # height 4
+16 wait
+lb4t
+lb4t
+lb1t
+dpe
+d
+tpe
+lb4t
 tpe
 purple         # end    4
 15 pink
 purple         # height 1
 19 wait
 purple         # end    1
-pink
+pink           # everything from here on is copied from row 7
 purple         # height 2
 17 wait
 tpe

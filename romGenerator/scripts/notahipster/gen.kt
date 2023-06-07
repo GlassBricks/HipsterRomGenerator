@@ -15,7 +15,7 @@ private fun getVersion(): Int {
     if (!versionFile.exists()) {
         versionFile.writeText("0")
     }
-    return versionFile.readText().toInt()
+    return versionFile.readText().trim().toInt()
 }
 
 private fun incVersion() {
@@ -24,14 +24,14 @@ private fun incVersion() {
 }
 
 val fileNames = listOf(
-    "row1-3.txt",
-    "row4.txt",
+    "row1234.txt",
     "row5.txt",
     "row6.txt",
     "row7.txt",
     "row8.txt",
     "row9.txt",
 )
+
 val moves = fileNames.map {
     lazy {
         File("9x9fs moves/$it")
@@ -92,6 +92,33 @@ class GenSchem : StringSpec({
 
             val schemFile = waitOptimizedRecordRomSchem(elements.let(::dispersePinks), encoding, Move.wait)
             writeSchematic(schemFile, "9x9fs out/$newFileName")
+        }
+    }
+})
+class GenOtherSchems: StringSpec({
+    "gen 7+8" {
+        val thisSeq = moves[3].value!! + moves[4].value!!
+
+        val schemFile = waitOptimizedRecordRomSchem(thisSeq, encoding, Move.wait)
+        writeSchematic(schemFile, "9x9fs out/row7+8.schem")
+    }
+})
+
+val fileNames2 = listOf (
+    "row1234seqoptimal",
+    "row5seqoptimal",
+    "row6seqoptimal",
+    "row7seqoptimal",
+    "row8seqoptimal",
+    "row9seqoptimal",
+)
+
+class RenameOldToNew : StringSpec({
+    "rename" {
+        for ((old, new) in fileNames2.zip(fileNames)) {
+            val oldFile = File("9x9fs moves/$old")
+            val newFile = File("9x9fs moves/$new")
+            oldFile.renameTo(newFile)
         }
     }
 })
