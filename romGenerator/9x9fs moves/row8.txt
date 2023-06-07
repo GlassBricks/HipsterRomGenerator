@@ -72,7 +72,7 @@ lb4t
 lb1t
 4 pink
 purple         # height 4
-18 wait
+19 wait
 dpe
 d
 tpe

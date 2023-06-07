@@ -1,7 +1,6 @@
 package notahipster
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.schem.writeSchematic
 import java.io.File
 
 class AnalyzeSeq : StringSpec({
@@ -37,7 +36,8 @@ class AnalyzeSeq : StringSpec({
     }
 
     "annotate seq" {
-        val waits = intArrayOf(17, 19, 20, 22, 23, 25, 27)
+//        val waits = intArrayOf(17, 19, 20, 22, 24, 25, 27)
+        val waits = intArrayOf(13, 14, 15, 16, 18, 19, 20)
         var curPinkPos = -8 + 18
 
         fun annotateFile(

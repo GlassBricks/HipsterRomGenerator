@@ -50,7 +50,6 @@ class GenSchem : StringSpec({
         incVersion()
         // zip all files in out dir
         val files = File("9x9fs out/").listFiles() ?: error("no files")
-        println(files.map { it.name })
         val zipFile = File("9x9fs out/9x9fs-all-v$version.zip")
         zipFile.delete()
         zipFile.createNewFile()
@@ -83,6 +82,8 @@ class GenSchem : StringSpec({
 
             writeSchematic(schemFile, "9x9fs out/$newFileName")
         }
+
+        print(movesCumulative.size)
     }
     "generate each" {
         for ((i, fileName) in fileNames.withIndex()) {

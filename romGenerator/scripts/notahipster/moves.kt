@@ -129,7 +129,9 @@ fun toWaitOptimizedSSBoxes2(moves: List<Move>): List<List<Move>> = buildList {
         }
         if (curBox.size == CHEST_MAX) {
             if (inPurple) {
-                if (curPurpCanOpt > 0 && curPurpWaitBegin != null && moves.getOrNull(i) != Move.purple) {
+                if (curPurpCanOpt > 0 && curPurpWaitBegin != null && curBox[curPurpWaitBegin] == Move.wait &&
+                    moves.getOrNull(i) != Move.purple
+                ) {
                     curBox.removeAt(curPurpWaitBegin)
                     curPurpCanOpt--
                     nRemoved++

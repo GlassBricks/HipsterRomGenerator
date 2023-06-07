@@ -130,7 +130,7 @@ tpe
 lb4t
 4 pink
 purple         # height 4
-17 wait
+18 wait
 lb1t
 dpe
 d
@@ -204,7 +204,7 @@ lb4t
 lb1t
 4 pink
 purple         # height 4
-18 wait
+19 wait
 dpe
 d
 tpe
