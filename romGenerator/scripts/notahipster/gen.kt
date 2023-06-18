@@ -68,6 +68,9 @@ class GenSchem : StringSpec({
             val newFileName = "row${i + 4}.schem"
             val schemFile = waitOptimizedRecordRomSchem2(gen.moves.let(::dispersePinks))
             writeSchematic(schemFile, "9x9fs out/$newFileName")
+
+
+            print(gen.moves)
         }
     }
 })
