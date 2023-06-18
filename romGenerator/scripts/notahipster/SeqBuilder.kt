@@ -10,7 +10,7 @@ interface MoveAdd {
 
 class MulToken(
     private val moveAdd: MoveAdd,
-    private val move: Move
+    private val move: Move,
 ) {
     operator fun times(amount: Int) {
         repeat(amount - 1) { moveAdd.add(move) }
@@ -28,14 +28,13 @@ val MoveAdd.lb1t get() = addAndGetToken(Move.lb1t)
 val MoveAdd.lb4t get() = addAndGetToken(Move.lb4t)
 val MoveAdd.f get() = addAndGetToken(Move.f)
 val MoveAdd.worm get() = addAndGetToken(Move.worm)
-val MoveAdd.wait get() = addAndGetToken(Move.wait)
 
+//val MoveAdd.wait get() = addAndGetToken(Move.wait)
 //val MoveAdd.purple get() = addAndGetToken(Move.purple)
 //val MoveAdd.pink get() = addAndGetToken(Move.pink)
 
 
-private const
-val PinkTapeSize = 18
+private const val PinkTapeSize = 18
 private val MaxTape = 6
 
 class SimpleMoveCollector : MoveAdd {
@@ -50,7 +49,7 @@ typealias MoveBlock = MoveAdd.() -> Unit
 class SeqGen(
     private var pinkTapeLevel: Int,
     val waitMoves: List<Int>,
-    val addPurpleInnerMovesFirst: Boolean = false
+    val addPurpleInnerMovesFirst: Boolean = false,
 ) : MoveAdd {
     init {
         require(waitMoves.size == MaxTape + 1)
