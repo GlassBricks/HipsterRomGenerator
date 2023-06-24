@@ -34,8 +34,7 @@ val MoveAdd.worm get() = addAndGetToken(Move.worm)
 //val MoveAdd.pink get() = addAndGetToken(Move.pink)
 
 
-private const val PinkTapeSize = 18
-private val MaxTape = 6
+private const val MaxTape = 6
 
 class SimpleMoveCollector : MoveAdd {
     val moves = mutableListOf<Move>()
@@ -47,17 +46,24 @@ class SimpleMoveCollector : MoveAdd {
 typealias MoveBlock = MoveAdd.() -> Unit
 
 class SeqGen(
-    private var pinkTapeLevel: Int,
+    pinkTapeLevel: Int,
+    val pinkSize: Int,
     val waitMoves: List<Int>,
-    val addPurpleInnerMovesFirst: Boolean = false,
+    val addPurpleInnerMovesFirst: Boolean ,
+    val addFinalPurple: Boolean ,
 ) : MoveAdd {
     init {
         require(waitMoves.size == MaxTape + 1)
     }
 
+    var pinkTapeLevel = pinkTapeLevel
+        private set
     val moves = mutableListOf<Move>()
     override fun add(move: Move) {
         moves.add(move)
+        if (move == Move.pink) {
+            pinkTapeLevel = (pinkTapeLevel + 1) % pinkSize
+        }
     }
 
 
@@ -66,10 +72,9 @@ class SeqGen(
         block: MoveBlock = {},
     ) {
         require(height in 0..MaxTape)
-        val heightDiff = (height - pinkTapeLevel + PinkTapeSize) % PinkTapeSize
-        repeat(heightDiff) { add(Move.pink) }
-
+        while (pinkTapeLevel != height) add(Move.pink)
         add(Move.purple)
+
         val innerMoves = SimpleMoveCollector().apply(block).moves
         val numWaitMoves = waitMoves[height]
 
@@ -81,6 +86,6 @@ class SeqGen(
             moves.addAll(innerMoves)
         }
 
-        add(Move.purple)
+        if (addFinalPurple) add(Move.purple)
     }
 }

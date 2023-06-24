@@ -1,6 +1,9 @@
-package me.glassbricks.schem
+package me.glassbricks
 
 import me.glassbricks.knbt.*
+import me.glassbricks.schem.ChestBlockEntity
+import me.glassbricks.schem.Item
+import me.glassbricks.schem.SchemFile
 
 
 typealias BitSequence = Iterable<Boolean>

@@ -1,58 +1,44 @@
 package jankHipster
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.schem.getInfinirom1Schem
-import me.glassbricks.sequence.getSequence
+import me.glassbricks.infinirom.SSEncoding
+import me.glassbricks.infinirom.toInifinirom1
 import me.glassbricks.schem.writeSchematic
+import ogMegafoldHipster.getSequence
 import java.io.File
 
 
+fun List<Move>.writeInfRomSchem(
+    name: String,
+    encoding: SSEncoding<Move> = encoding1,
+) {
+    val schem = encoding.encode(this).toInifinirom1()
+    File(name).writeSchematic(schem)
+}
+
 class MakeSchems : StringSpec({
-//    "print 6x6" {
-//        println(printTree { seq6() })
-//    }
     "print seq len" {
         println(getSequence { seq7() }.size)
     }
 
     "test schem" {
-//        val seq = getSequence {
-//            fullRow1()
-//            fullRow2()
-//            fullRow3()
-//        }
         val seq = List(20) { Move.t4 }
-        val schem = getInfinirom1Schem(
-            seq,
-            encoding1
-        )
-        writeSchematic(schem, File("4t.schem"))
+        seq.writeInfRomSchem("t4s.schem")
     }
+
     "6x6 schem" {
         val seq = getSequence { seq6() }
-        val schem = getInfinirom1Schem(seq, encoding1)
-        writeSchematic(schem, File("templates/6x6.schem"))
+        seq.writeInfRomSchem("6x6.schem")
     }
 
     "7x7 schem" {
         val seq = getSequence { seq7() }
-        val schem = getInfinirom1Schem(seq, encoding1)
-        writeSchematic(schem, File("7x7.schem"))
-    }
-
-    "7x7 new" {
-        val seq = HipSequences().apply {
-            fullDoor(7)
-        }.build()
-
-        val schem = getInfinirom1Schem(seq, encoding1)
-        writeSchematic(schem, File("7x7new.schem"))
+        seq.writeInfRomSchem("7x7.schem")
     }
 
     "row7 only schem" {
         val seq = getSequence { row7() }
-        val schem = getInfinirom1Schem(seq, encoding1)
-        writeSchematic(schem, File("row7.schem"))
+        seq.writeInfRomSchem("row7.schem")
     }
 
     "print row7 only" {
@@ -60,29 +46,15 @@ class MakeSchems : StringSpec({
         println(seq.joinToString("\n"))
     }
 
-    "row7 new" {
-        val seq = HipSequences().apply { row(7) }.build()
-
-        val schem = getInfinirom1Schem(seq, encoding1)
-        writeSchematic(schem, File("row7new.schem"))
-    }
-
-    "print row5 new" {
-        val seq = HipSequences().apply { row(5) }.build()
-        println(seq.joinToString("\n"))
-    }
-
-    "row8 new only" {
+    "row8 new" {
         val seq = HipSequences(nObs = 3, nFolds = 2).apply { row(8) }.build()
 
-        val schem = getInfinirom1Schem(seq, encoding2)
-        writeSchematic(schem, File("row8new.schem"))
+        seq.writeInfRomSchem("row8new.schem", encoding2)
     }
 
     "8x8 new" {
         val seq = HipSequences(nObs = 3, nFolds = 2).apply { +Move.t4; fullDoor(8) }.build()
-        val schem = getInfinirom1Schem(seq, encoding2)
-        writeSchematic(schem, File("8x8new.schem"))
+        seq.writeInfRomSchem("8x8new.schem", encoding2)
     }
 
     "print 8 length" {
@@ -90,22 +62,19 @@ class MakeSchems : StringSpec({
         println(seq.size)
     }
 
-    "print 8" {
+    "print row 8" {
         val seq = HipSequences(nObs = 3, nFolds = 2).apply { row(8) }.build()
         println(seq.joinToString("\n"))
     }
 
-    "row9 new only" {
+    "row9 new" {
         val seq = HipSequences(nObs = 3, nFolds = 2).apply { row(9) }.build()
-
-        val schem = getInfinirom1Schem(seq, encoding2)
-        writeSchematic(schem, File("row9new.schem"))
+        seq.writeInfRomSchem("row9new.schem", encoding2)
     }
 
     "9x9 new" {
         val seq = HipSequences(nObs = 3, nFolds = 2).apply { +Move.t4; fullDoor(9) }.build()
-        val schem = getInfinirom1Schem(seq, encoding2)
-        writeSchematic(schem, File("9x9new.schem"))
+        seq.writeInfRomSchem("9x9new.schem", encoding2)
     }
 
     "print 9 length" {
@@ -113,9 +82,8 @@ class MakeSchems : StringSpec({
         println(seq.size)
     }
 
-
     "print 4 through 11 length" {
-        for(i in 4..11) {
+        for (i in 4..11) {
             val seq = HipSequences(nObs = 3, nFolds = 2).apply { fullDoor(i) }.build()
             println("$i: ${seq.size}")
         }

@@ -1,4 +1,9 @@
-package me.glassbricks.schem
+package me.glassbricks.infinirom
+
+import me.glassbricks.schem.DataVersions
+import me.glassbricks.schem.Entity
+import me.glassbricks.schem.Item
+import me.glassbricks.schem.SchemFile
 
 // up to 1 item per cart
 
@@ -18,12 +23,8 @@ fun SignalStrength.toChestMinecart(): Entity {
     )
 }
 
-fun <I> getInfinirom1Schem(
-    moves: List<I>,
-    encoding: Map<I, Int>,
-): SchemFile {
-    val entities = encodeToSignalStrengths(moves, encoding)
-        .map { it.toChestMinecart() }
+fun List<SignalStrength>.toInifinirom1(): SchemFile {
+    val entities = this.map(SignalStrength::toChestMinecart)
     return SchemFile(
         Width = 1,
         Height = 1,

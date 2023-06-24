@@ -3,7 +3,9 @@ package notahipster
 private typealias B = SeqGen
 
 fun B.row1234() {
+    // row 1
     tpe
+    // row 2
     d
     dpe
     lb4t
@@ -11,6 +13,7 @@ fun B.row1234() {
     dpe
     d
     tpe
+    // row 3
     d
     dpe
     lb1t
@@ -23,6 +26,7 @@ fun B.row1234() {
     dpe
     d
     tpe
+    // row 4
     e
     dpe
     lb1t
@@ -30,9 +34,7 @@ fun B.row1234() {
     row4Retract()
 }
 
-fun B.row4Retract(
-    andTape5: Boolean = false,
-) {
+fun B.row4Retract(andTape5: Boolean = false) {
     tape(1)
 
     val b: MoveBlock = {
@@ -160,8 +162,34 @@ fun B.row7() {
         lb1t
         tpe
     }
+    row7retract()
+}
+
+fun B.row7retract() {
     tape(1)
-    row5Retract()
+    tape(2) {
+        tpe
+        d
+        dpe
+    }
+    lb4t
+    lb1t
+    dpe
+    d
+    tpe
+    tape(3) {
+        lb1t
+        dpe
+    }
+    tape(0) {
+        e
+        d
+        f
+        e
+        g
+        f * 2
+    }
+    row6Retract()
 }
 
 fun B.row8() {
@@ -210,30 +238,7 @@ private fun B.row8retract() {
         lb4t
         tpe
     }
-    tape(1)
-    tape(2) {
-        tpe
-        d
-        dpe
-    }
-    lb4t
-    lb1t
-    dpe
-    d
-    tpe
-    tape(3) {
-        lb1t
-        dpe
-    }
-    tape(0) {
-        e
-        d
-        f
-        e
-        g
-        f
-    }
-    row6Retract()
+    row7retract()
 }
 
 fun B.row9() {
@@ -302,5 +307,4 @@ fun B.row9() {
         tpe
     }
     row8retract()
-    dpe // floor
 }

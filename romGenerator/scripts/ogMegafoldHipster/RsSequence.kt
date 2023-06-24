@@ -1,4 +1,4 @@
-package me.glassbricks.sequence
+package ogMegafoldHipster
 
 import java.io.PrintWriter
 import java.io.StringWriter

@@ -1,196 +1,152 @@
 package notahipster
 
-import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.schem.*
+import me.glassbricks.infinirom.SSEncoding
+import me.glassbricks.infinirom.simpleRecordInfinirom
+import me.glassbricks.infinirom.toRecordCartSchem
+import me.glassbricks.schem.writeSchematic
 import java.io.File
-import java.io.FileOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
+private val params = Params(
+    waitMoves = listOf(28, 29, 31, 33, 35, 37, 39),
+    addPurpleInnerMovesFirst = true,
+    addFinalPurple = false,
+    pinkSize = 16,
+    initialPinkPos = -6 + 16,
+    doPinkDisperse = false,
+    doWaitOptimization = false,
+    encoding = SSEncoding(
+        Move.e to 1,
+        Move.d to 2,
+        Move.wait to 3,
+        Move.dpe to 4,
+        Move.tpe to 5,
+        Move.purple to 6,
+        // 7 is unusable wait move
+        Move.worm to 8,
+        Move.g to 9,
+        Move.lb1t to 10,
+        Move.lb4t to 11,
+        Move.f to 12,
+        Move.pink to 13,
+    ),
+)
 
-class GenSchem : StringSpec({
-    beforeSpec {
-        File("9x9fs out").mkdirs()
-        // clear out dir
-        File("9x9fs out").listFiles()?.forEach { it.delete() }
-    }
-    afterSpec {
-        val version = getVersion()
-        incVersion()
-        // zip all files in out dir
-        val files = File("9x9fs out/").listFiles() ?: error("no files")
-        val zipFile = File("9x9fs out/9x9fs-all-v$version.zip")
-        zipFile.delete()
-        zipFile.createNewFile()
-        ZipOutputStream(FileOutputStream(zipFile)).use {
-            for (file in files) {
-                if (!file.name.endsWith(".schem")) continue
-                println("writing ${file.name}... ")
-                it.putNextEntry(ZipEntry(file.name))
-                it.write(file.readBytes())
-                it.closeEntry()
-            }
-        }
-        println("wrote to ${zipFile.absolutePath}")
-    }
-    val fns = listOf<SeqGen.() -> Unit>(
-        SeqGen::row1234,
-        SeqGen::row5,
-        SeqGen::row6,
-        SeqGen::row7,
-        SeqGen::row8,
-        SeqGen::row9,
-    )
-    val waitMoves = listOf(13, 14, 15, 17, 18, 19, 20)
-    "generate cumulative" {
-        val gen = SeqGen(
-            pinkTapeLevel = -8 + 18,
-            waitMoves = waitMoves,
-        )
-        for (i in 0..5) {
-            val fn = fns[i]
-            fn(gen)
-
-            val newFileName = "upTo-row${i + 4}.schem"
-            val schemFile = waitOptimizedRecordRomSchem2(gen.moves.let(::dispersePinks))
-            writeSchematic(schemFile, "9x9fs out/$newFileName")
-        }
-    }
-    "generate each" {
-        for (i in 0..5) {
-            val fn = fns[i]
-            val gen = SeqGen(
-                pinkTapeLevel = 0,
-                waitMoves = waitMoves,
-            )
-            fn(gen)
-
-            val newFileName = "row${i + 4}.schem"
-            val schemFile = waitOptimizedRecordRomSchem2(gen.moves.let(::dispersePinks))
-            writeSchematic(schemFile, "9x9fs out/$newFileName")
-
-
-            print(gen.moves)
-        }
-    }
-})
-
-private val versionFile = File("9x9fs moves/cur_version")
-
-private fun getVersion(): Int {
-    if (!versionFile.exists()) {
-        versionFile.writeText("0")
-    }
-    return versionFile.readText().trim().toInt()
+fun main() {
+    clearOutDir()
+    genEachRow()
+    genFullSeq()
+    zipOutDir()
 }
 
-private fun incVersion() {
-    val version = getVersion()
+class Params(
+    val waitMoves: List<Int>,
+    val addPurpleInnerMovesFirst: Boolean,
+    val addFinalPurple: Boolean,
+    val pinkSize: Int,
+    val initialPinkPos: Int,
+    val doPinkDisperse: Boolean,
+    val doWaitOptimization: Boolean,
+    val encoding: SSEncoding<Move>,
+)
+
+/*
+old encoding
+ = mapOf(
+    Move.e to 2,
+    Move.d to 3,
+    Move.dpe to 4,
+    Move.tpe to 5,
+    Move.g to 6,
+    Move.lb1t to 8,
+    Move.lb4t to 9,
+    Move.f to 10,
+    Move.worm to 11,
+    Move.wait to 12,
+    Move.purple to 13,
+    Move.pink to 15,
+)
+ */
+
+
+private val outDir = File("romGenerator/9x9fs out")
+private fun clearOutDir() {
+    outDir.mkdirs()
+    outDir.listFiles()?.forEach { it.deleteRecursively() }
+}
+
+private val rowFns = listOf(
+    SeqGen::row1234,
+    SeqGen::row5,
+    SeqGen::row6,
+    SeqGen::row7,
+    SeqGen::row8,
+    SeqGen::row9,
+)
+
+private fun genEachRow() {
+    val gen = SeqGen(
+//        pinkTapeLevel = params.initialPinkPos,
+        pinkTapeLevel = 0,
+        pinkSize = params.pinkSize,
+        waitMoves = params.waitMoves,
+        addPurpleInnerMovesFirst = params.addPurpleInnerMovesFirst,
+        addFinalPurple = params.addFinalPurple,
+    )
+    for (fn in rowFns) {
+        fn(gen)
+        writeSchem(gen, outDir.resolve("${fn.name}.schem"))
+    }
+}
+
+private fun genFullSeq() {
+    val gen = SeqGen(
+        pinkTapeLevel = params.initialPinkPos,
+        pinkSize = params.pinkSize,
+        waitMoves = params.waitMoves,
+        addPurpleInnerMovesFirst = params.addPurpleInnerMovesFirst,
+        addFinalPurple = params.addFinalPurple,
+    )
+    for (fn in rowFns) fn(gen)
+    // ffinal moves
+    gen.apply {
+        dpe // floor block
+        while (pinkTapeLevel != params.initialPinkPos) add(Move.pink)
+    }
+    writeSchem(gen, outDir.resolve("full.schem"))
+}
+
+private fun writeSchem(gen: SeqGen, file: File) {
+    var moves: List<Move> = gen.moves
+    if (params.doPinkDisperse) moves = dispersePinks(moves)
+
+    val rom = if (params.doWaitOptimization) {
+        purpleWaitOptimizedRecordInfinirom(moves, params.encoding)
+    } else {
+        simpleRecordInfinirom(moves, params.encoding, Move.wait)
+    }
+
+    val schem = rom.toRecordCartSchem()
+    file.writeSchematic(schem)
+}
+
+
+private val versionFile = File("romGenerator/9x9fs moves/cur_version")
+
+private fun zipOutDir() {
+
+    if (!versionFile.exists()) versionFile.writeText("0")
+    val version = versionFile.readText().trim().toIntOrNull() ?: 0
     versionFile.writeText((version + 1).toString())
-}
+    val files = outDir.listFiles()
 
-private const val shouldDispersePinks = false
-fun dispersePinks(seq: List<Move>): List<Move> {
-    if (!shouldDispersePinks) return seq
-    var inPurple = false
-    val lastSeg = mutableListOf<Move>()
-    val result = mutableListOf<Move>()
-    var lastSegNumPinks = 0
-    for (move in seq) when (move) {
-        Move.purple -> {
-            inPurple = !inPurple
-            if (inPurple) {
-                // disperse pinks evenly in lastSeg
-                val finalSegSize = lastSeg.size + lastSegNumPinks
-                val numPinks = lastSegNumPinks
-
-                if (numPinks > 0) {
-                    val step = finalSegSize / numPinks
-                    for (i in 0 until numPinks) {
-                        val index = ((i + 0.5) * step).toInt()
-                        lastSeg.add(index, Move.pink)
-                    }
-                }
-            }
-            lastSeg += move
-            result += lastSeg
-            lastSeg.clear()
-            lastSegNumPinks = 0
-        }
-
-        Move.pink -> {
-            lastSegNumPinks++
-        }
-
-        else -> {
-            lastSeg += move
+    val zipFile = outDir.resolve("9x9fs-$version.zip")
+    ZipOutputStream(zipFile.outputStream()).use { zos ->
+        files?.forEach { file ->
+            zos.putNextEntry(ZipEntry(file.name))
+            file.inputStream().use { it.copyTo(zos) }
+            zos.closeEntry()
         }
     }
-    result += lastSeg
-    while (lastSegNumPinks-- > 0) result += Move.pink
-
-    return result
-}
-
-
-// boundary of boxes count as 2 waiting moves
-// BUT waits only happen in between purples
-// if purples span a chest, can remove up to 2 wait moves ANYWHERE in between purples
-fun toWaitOptimizedSSBoxes2(moves: List<Move>): List<List<Move>> = buildList {
-    var curBox = mutableListOf<Move>()
-    var inPurple = false
-    var curPurpWaitBegin: Int? = null
-    var curPurpCanOpt = 2
-    var i = 0
-    var nRemoved = 0
-    while (i < moves.size) {
-        val move = moves[i++]
-        curBox.add(move)
-        if (move == Move.purple) {
-            inPurple = !inPurple
-            if (inPurple) {
-                curPurpCanOpt = 2
-                curPurpWaitBegin = null
-            }
-        } else if (move == Move.wait) {
-            curPurpWaitBegin = curPurpWaitBegin ?: curBox.lastIndex
-        }
-        if (curBox.size == CHEST_MAX) {
-            if (inPurple) {
-                if (curPurpCanOpt > 0 && curPurpWaitBegin != null && curBox[curPurpWaitBegin] == Move.wait &&
-                    moves.getOrNull(i) != Move.purple
-                ) {
-                    curBox.removeAt(curPurpWaitBegin)
-                    curPurpCanOpt--
-                    nRemoved++
-                    continue
-                }
-                while (curPurpCanOpt > 0 && moves.getOrNull(i) == Move.wait) {
-                    i++
-                    curPurpCanOpt--
-                    nRemoved++
-                }
-            }
-            add(curBox)
-            curBox = mutableListOf()
-            curPurpWaitBegin = null
-        }
-    }
-
-    while (curBox.size < CHEST_MAX) {
-        curBox.add(Move.wait)
-    }
-    add(curBox)
-
-    println("removed $nRemoved wait moves")
-}
-
-fun waitOptimizedRecordRomSchem2(
-    moves: List<Move>,
-): SchemFile {
-    val boxes = toWaitOptimizedSSBoxes2(moves)
-    val rom = SSBoxes(
-        boxes.map { SSBox(encodeToSignalStrengths(it, encoding)) }
-    )
-    return toRecordChestRomSchem(rom)
 }

@@ -2,7 +2,7 @@ package jankHipster
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import me.glassbricks.sequence.getSequence
+import ogMegafoldHipster.getSequence
 
 class TestIsSame : StringSpec({
     System.setProperty("kotest.assertions.collection.print.size", "100")

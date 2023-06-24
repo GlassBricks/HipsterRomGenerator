@@ -1,7 +1,8 @@
 package chungusHipster
 
 import chungusHipster.Move.*
-import me.glassbricks.sequence.SimpleSequenceVisitor
+import me.glassbricks.infinirom.SSEncoding
+import ogMegafoldHipster.SimpleSequenceVisitor
 import me.glassbricks.splitCamelCase
 
 
@@ -337,22 +338,22 @@ class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
 }
 
 fun getChungusSequence(
-    fn: ChungusSeqBuilder.() -> Unit
+    fn: ChungusSeqBuilder.() -> Unit,
 ): List<Move> = ChungusSeqBuilder().apply(fn).build()
 
-val ChungusEncoding = mapOf(
-    1 to t1,
-    2 to t3,
-    3 to storage,
-    4 to t4,
-    5 to mid,
-    6 to fold1,
-    7 to bot,
-    8 to fold3,
-    9 to b,
-    10 to fold2,
-    11 to back,
-    12 to o,
-    13 to jank,
-    14 to wait
-).entries.associate { (k, v) -> v to k }
+val ChungusEncoding = SSEncoding(
+    t1 to 1,
+    t3 to 2,
+    storage to 3,
+    t4 to 4,
+    mid to 5,
+    fold1 to 6,
+    bot to 7,
+    fold3 to 8,
+    b to 9,
+    fold2 to 10,
+    back to 11,
+    o to 12,
+    jank to 13,
+    wait to 14
+)

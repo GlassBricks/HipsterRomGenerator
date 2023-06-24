@@ -2,7 +2,8 @@ package jankHipster
 
 import jankHipster.Move.*
 import io.kotest.matchers.shouldBe
-import me.glassbricks.sequence.SimpleSequenceVisitor
+import me.glassbricks.infinirom.SSEncoding
+import ogMegafoldHipster.SimpleSequenceVisitor
 import kotlin.math.roundToInt
 
 
@@ -293,7 +294,7 @@ class HipSequences(
 }
 
 
-val encoding2 = mapOf(
+val encoding2 = SSEncoding(
     fold to 1,
     mid to 2,
     bot to 3,

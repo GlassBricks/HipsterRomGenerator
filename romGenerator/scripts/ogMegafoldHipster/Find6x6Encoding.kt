@@ -1,8 +1,8 @@
 package ogMegafoldHipster
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.schem.BinaryEncoding
-import me.glassbricks.schem.encodeToItems
+import me.glassbricks.BinaryEncoding
+import me.glassbricks.encodeToItems
 
 class Find6x6Encoding : StringSpec({
     "print sequence" {

@@ -1,66 +1,52 @@
 package chungusHipster
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.schem.chungusRomSchem
-import me.glassbricks.schem.waitOptimizedChungusRomSchem
+import me.glassbricks.infinirom.simpleChungusRom
+import me.glassbricks.infinirom.toSchem
+import me.glassbricks.infinirom.waitOptimizedChungusRom
 import me.glassbricks.schem.writeSchematic
 import java.io.File
 
 
+fun writeSimpleSchem(
+    seq: List<Move>,
+    name: String,
+) {
+    val rom = simpleChungusRom(seq, ChungusEncoding, Move.wait)
+    val schem = rom.toSchem()
+    File(name).writeSchematic(schem)
+}
+
+fun writeOptimizedSchem(
+    seq: List<Move>,
+    name: String,
+) {
+    val rom = waitOptimizedChungusRom(seq, ChungusEncoding, Move.wait)
+    val schem = rom.toSchem()
+    File(name).writeSchematic(schem)
+}
+
 class MakeSchems : StringSpec({
-    "row 9 only schem" {
-        val seq = getChungusSequence { row(9) }
-        val schem = chungusRomSchem(
-            seq,
-            ChungusEncoding,
-        )
-
-//        val nbt = Nbt { encodeDefaults = true }
-//        val tag = nbt.encodeToTag(serializer(), schem)
-//        println(tag)
-
-        writeSchematic(schem, "row9-v5.schem")
+    "each row" {
+        for (row in 1..10) {
+            val seq = getChungusSequence { row(9) }
+            writeSimpleSchem(seq, "chungus/row${row}.schem")
+        }
     }
-
-    "row 10 only schem" {
-        val seq = getChungusSequence { row(10) }
-        val schem = chungusRomSchem(
-            seq,
-            ChungusEncoding,
-        )
-
-        writeSchematic(schem, "row10-v9.schem")
-    }
-    "print row 10" {
-        val seq = getChungusSequence { row(10) }
-        println(seq)
-    }
-
-    "full door 10 schem" {
+    "full door 10" {
         val seq = getChungusSequence { fullDoor(10, false) }
-        val schem = chungusRomSchem(
-            seq,
-            ChungusEncoding,
-        )
 
-        writeSchematic(
-            schem,
-            File("~/.var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher/instances/Fabulously Optimized/.minecraft/config/worldedit/schematics/door10-v4.schem")
+        writeSimpleSchem(
+            seq,
+            "~/.var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher/instances/Fabulously Optimized/.minecraft/config/worldedit/schematics/door10-v4.schem"
         )
     }
 
-    "full door 10 maybe optimized schem" {
+    "full door 10 optimized" {
         val seq = getChungusSequence { fullDoor(10, false) }
-        val schem = waitOptimizedChungusRomSchem(
+        writeOptimizedSchem(
             seq,
-            ChungusEncoding,
-            Move.wait,
-        )
-
-        writeSchematic(
-            schem,
-//            File("~/.var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher/instances/Fabulously Optimized/.minecraft/config/worldedit/schematics/door10-v5.schem")
-            "door10-v8.schem"
+            "~/.var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher/instances/Fabulously Optimized/.minecraft/config/worldedit/schematics/door10-v5.schem"
         )
     }
 

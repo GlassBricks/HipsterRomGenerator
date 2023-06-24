@@ -2,6 +2,7 @@ package me.glassbricks
 
 import java.util.*
 
+const val CHEST_MAX = 27
 fun String.splitCamelCase(): String =
     replace(
         String.format(

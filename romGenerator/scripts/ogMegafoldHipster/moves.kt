@@ -1,8 +1,7 @@
 package ogMegafoldHipster
 
 import ogMegafoldHipster.Move.*
-import me.glassbricks.schem.BinaryEncoding
-import me.glassbricks.sequence.*
+import me.glassbricks.BinaryEncoding
 import me.glassbricks.splitCamelCase
 import kotlin.math.abs
 

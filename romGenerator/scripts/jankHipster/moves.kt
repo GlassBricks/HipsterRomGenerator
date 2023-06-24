@@ -1,7 +1,8 @@
 package jankHipster
 
 import jankHipster.Move.*
-import me.glassbricks.sequence.RsSequenceVisitor
+import me.glassbricks.infinirom.SSEncoding
+import ogMegafoldHipster.RsSequenceVisitor
 import me.glassbricks.splitCamelCase
 
 @Suppress("EnumEntryName")
@@ -188,7 +189,7 @@ fun B.only7() {
 }
 
 
-val encoding1 = mapOf(
+val encoding1 = SSEncoding(
     mid to 1,
     bot to 2,
     b to 4,

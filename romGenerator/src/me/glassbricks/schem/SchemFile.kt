@@ -3,7 +3,10 @@
 package me.glassbricks.schem
 
 import kotlinx.serialization.Serializable
+import me.glassbricks.infinirom.nbt
 import me.glassbricks.knbt.CompoundTag
+import java.io.File
+import java.util.zip.GZIPOutputStream
 
 @Serializable
 class SchemFile(
@@ -59,3 +62,13 @@ class Entity(
     val Rotation: FloatArray = floatArrayOf(0.0f, 0.0f),
     val UUID: IntArray? = null,
 )
+
+
+fun File.writeSchematic(schematic: SchemFile) {
+    absoluteFile.parentFile.mkdirs()
+    val stream = outputStream().buffered().let(::GZIPOutputStream)
+    stream.use {
+        nbt.encodeToStream(it, SchemFile.serializer(), schematic)
+    }
+    println("wrote to $absolutePath")
+}

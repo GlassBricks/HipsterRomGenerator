@@ -1,5 +1,11 @@
 package notahipster
 
+import me.glassbricks.CHEST_MAX
+import me.glassbricks.infinirom.RecordInfinirom
+import me.glassbricks.infinirom.SSBox
+import me.glassbricks.infinirom.SSEncoding
+import me.glassbricks.infinirom.fullSSBox
+
 
 @Suppress("EnumEntryName")
 enum class Move {
@@ -17,17 +23,98 @@ enum class Move {
     pink,
 }
 
-val encoding = mapOf(
-    Move.e to 2,
-    Move.d to 3,
-    Move.dpe to 4,
-    Move.tpe to 5,
-    Move.g to 6,
-    Move.lb1t to 8,
-    Move.lb4t to 9,
-    Move.f to 10,
-    Move.worm to 11,
-    Move.wait to 12,
-    Move.purple to 13,
-    Move.pink to 15,
-)
+fun dispersePinks(seq: List<Move>): List<Move> {
+    var inPurple = false
+    val lastSeg = mutableListOf<Move>()
+    val result = mutableListOf<Move>()
+    var lastSegNumPinks = 0
+    for (move in seq) when (move) {
+        Move.purple -> {
+            inPurple = !inPurple
+            if (inPurple) {
+                // disperse pinks evenly in lastSeg
+                val finalSegSize = lastSeg.size + lastSegNumPinks
+                val numPinks = lastSegNumPinks
+
+                if (numPinks > 0) {
+                    val step = finalSegSize / numPinks
+                    for (i in 0 until numPinks) {
+                        val index = ((i + 0.5) * step).toInt()
+                        lastSeg.add(index, Move.pink)
+                    }
+                }
+            }
+            lastSeg += move
+            result += lastSeg
+            lastSeg.clear()
+            lastSegNumPinks = 0
+        }
+
+        Move.pink -> {
+            lastSegNumPinks++
+        }
+
+        else -> {
+            lastSeg += move
+        }
+    }
+    result += lastSeg
+    while (lastSegNumPinks-- > 0) result += Move.pink
+
+    return result
+}
+
+// Boundary between carts adds 2 free 2 waiting moves.
+// But waits only happen inside purple tapes.
+// So, if purples span a chest, can remove 2 waiting moves ANYWHERE in between purples
+fun purpleWaitOptimizedRecordInfinirom(
+    moves: List<Move>,
+    encoding: SSEncoding<Move>,
+): RecordInfinirom {
+    val result = mutableListOf<SSBox>()
+    val curBox = mutableListOf<Move>()
+    var inPurple = false
+    var curPurpWaitBegin: Int? = null
+    var curPurpCanOpt = 2
+    var i = 0
+    var nRemoved = 0
+    while (i < moves.size) {
+        val move = moves[i++]
+        curBox.add(move)
+        if (move == Move.purple) {
+            inPurple = !inPurple
+            if (inPurple) {
+                curPurpCanOpt = 2
+                curPurpWaitBegin = null
+            }
+        } else if (move == Move.wait) {
+            curPurpWaitBegin = curPurpWaitBegin ?: curBox.lastIndex
+        }
+        if (curBox.size == CHEST_MAX) {
+            if (inPurple) {
+                if (curPurpCanOpt > 0 && curPurpWaitBegin != null && curBox[curPurpWaitBegin] == Move.wait &&
+                    moves.getOrNull(i) != Move.purple
+                ) {
+                    curBox.removeAt(curPurpWaitBegin)
+                    curPurpCanOpt--
+                    nRemoved++
+                    continue
+                }
+                while (curPurpCanOpt > 0 && moves.getOrNull(i) == Move.wait) {
+                    i++
+                    curPurpCanOpt--
+                    nRemoved++
+                }
+            }
+            result.add(encoding.encode(curBox).let(::SSBox))
+            curBox.clear()
+            curPurpWaitBegin = null
+        }
+    }
+
+    result.add(fullSSBox(encoding.encode(curBox), encoding[Move.wait]))
+
+    println("removed $nRemoved waits")
+
+    return RecordInfinirom(result)
+}
