@@ -12,8 +12,10 @@ fun <T> simpleRecordInfinirom(
     moves: List<T>,
     encoding: SSEncoding<T>,
     waitingMove: T,
-): RecordInfinirom = encoding.encode(moves).chunkToFullBoxes(encoding[waitingMove])
-    .let(::RecordInfinirom)
+): RecordInfinirom =
+    encoding.encode(moves)
+        .chunkToFullBoxes(encoding[waitingMove])
+        .let(::RecordInfinirom)
 
 fun RecordInfinirom.toRecordCartSchem(
     rotation: Float = 0f,

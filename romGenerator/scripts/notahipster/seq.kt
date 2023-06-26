@@ -115,6 +115,7 @@ fun B.row6() {
     dpe
     lb4t
     tape(3) {
+        lb4t
         lb1t
         dpe
         d
@@ -149,9 +150,9 @@ fun B.row7() {
     lb1t
     dpe
     tape(0)
-    dpe
-    tpe
     tape(4) {
+        dpe
+        tpe
         lb4t
         lb1t
         dpe
@@ -172,12 +173,12 @@ fun B.row7retract() {
         d
         dpe
     }
-    lb4t
-    lb1t
-    dpe
-    d
-    tpe
     tape(3) {
+        lb4t
+        lb1t
+        dpe
+        d
+        tpe
         lb1t
         dpe
     }
@@ -187,7 +188,7 @@ fun B.row7retract() {
         f
         e
         g
-        f * 2
+        f * 3
     }
     row6Retract()
 }
@@ -227,9 +228,9 @@ private fun B.row8retract() {
         dpe
     }
     tape(0)
-    dpe
-    tpe
     tape(4) {
+        dpe
+        tpe
         lb4t
         lb1t
         dpe
@@ -243,7 +244,7 @@ private fun B.row8retract() {
 
 fun B.row9() {
     g
-    lb1t
+    dpe
     lb1t
     f
     e
@@ -257,48 +258,35 @@ fun B.row9() {
         d
         lb1t
     }
-    lb4t
-    lb1t
-    dpe
-    d
-    tpe
-    d
-    tpe
     tape(6) {
-        worm
-        tpe
-        d
-        tpe
-        lb1t
-        d
-        lb1t
         lb4t
+        lb1t
+        dpe
+        d
+        tpe
+        d
+        tpe
+        worm
     }
     tape(3) {
-        lb1t
-        dpe
-        d
-        tpe
-        d
-        dpe
         lb1t
         dpe
     }
     tape(0)
     row6Retract()
     f
-    lb1t
+    dpe
     lb1t
     e
     d
-    lb1t
+    dpe
     lb1t
     dpe
     tape(0)
-    dpe
-    tpe
-    lb4t
     tape(4) {
+        dpe
+        tpe
+        lb4t
         lb1t
         dpe
         d

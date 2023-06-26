@@ -1,7 +1,6 @@
 package notahipster
 
 import me.glassbricks.infinirom.SSEncoding
-import me.glassbricks.infinirom.simpleRecordInfinirom
 import me.glassbricks.infinirom.toRecordCartSchem
 import me.glassbricks.schem.writeSchematic
 import java.io.File
@@ -9,13 +8,13 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 private val params = Params(
-    waitMoves = listOf(28, 29, 31, 33, 35, 37, 39),
+    waitMoves = listOf(28, 29, 31, 34, 36, 38, 40),
     addPurpleInnerMovesFirst = true,
     addFinalPurple = false,
     pinkSize = 16,
     initialPinkPos = -6 + 16,
     doPinkDisperse = false,
-    doWaitOptimization = false,
+    doWaitOptimization = 3,
     encoding = SSEncoding(
         Move.e to 1,
         Move.d to 2,
@@ -47,7 +46,7 @@ class Params(
     val pinkSize: Int,
     val initialPinkPos: Int,
     val doPinkDisperse: Boolean,
-    val doWaitOptimization: Boolean,
+    val doWaitOptimization: Int,
     val encoding: SSEncoding<Move>,
 )
 
@@ -86,15 +85,14 @@ private val rowFns = listOf(
 )
 
 private fun genEachRow() {
-    val gen = SeqGen(
-//        pinkTapeLevel = params.initialPinkPos,
-        pinkTapeLevel = 0,
-        pinkSize = params.pinkSize,
-        waitMoves = params.waitMoves,
-        addPurpleInnerMovesFirst = params.addPurpleInnerMovesFirst,
-        addFinalPurple = params.addFinalPurple,
-    )
     for (fn in rowFns) {
+        val gen = SeqGen(
+//        pinkTapeLevel = params.initialPinkPos,
+            pinkTapeLevel = 0,
+            pinkSize = params.pinkSize,
+            waitMoves = params.waitMoves,
+            addPurpleInnerMovesFirst = params.addPurpleInnerMovesFirst,
+        )
         fn(gen)
         writeSchem(gen, outDir.resolve("${fn.name}.schem"))
     }
@@ -106,14 +104,15 @@ private fun genFullSeq() {
         pinkSize = params.pinkSize,
         waitMoves = params.waitMoves,
         addPurpleInnerMovesFirst = params.addPurpleInnerMovesFirst,
-        addFinalPurple = params.addFinalPurple,
     )
     for (fn in rowFns) fn(gen)
-    // ffinal moves
+    // final moves
     gen.apply {
         dpe // floor block
         while (pinkTapeLevel != params.initialPinkPos) add(Move.pink)
     }
+
+//    println(gen.moves)
     writeSchem(gen, outDir.resolve("full.schem"))
 }
 
@@ -121,13 +120,9 @@ private fun writeSchem(gen: SeqGen, file: File) {
     var moves: List<Move> = gen.moves
     if (params.doPinkDisperse) moves = dispersePinks(moves)
 
-    val rom = if (params.doWaitOptimization) {
-        purpleWaitOptimizedRecordInfinirom(moves, params.encoding)
-    } else {
-        simpleRecordInfinirom(moves, params.encoding, Move.wait)
-    }
+    val rom = purpleWaitOptimizedRecordInfinirom(moves, params.encoding, params.doWaitOptimization, !params.addFinalPurple)
 
-    val schem = rom.toRecordCartSchem()
+    val schem = rom.toRecordCartSchem(rotation = 90f)
     file.writeSchematic(schem)
 }
 

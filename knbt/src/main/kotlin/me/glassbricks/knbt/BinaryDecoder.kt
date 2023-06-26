@@ -6,7 +6,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import java.io.DataInput
 
-@OptIn(ExperimentalSerializationApi::class)
 internal abstract class AbstractNbtBinaryDecoder(
     nbt: Nbt,
     protected val input: DataInput,
@@ -120,7 +119,8 @@ internal open class NbtBinaryMapDecoder(
         if (isKey) {
             //should have called one of the below overrides instead
             throw InvalidKeyKind(requestedType.name)
-        } else super.beforeDecodeValue(requestedType)
+        }
+        super.beforeDecodeValue(requestedType)
     }
 
     override fun decodeBoolean(): Boolean = if (isKey) key.toBooleanStrict() else super.decodeBoolean()

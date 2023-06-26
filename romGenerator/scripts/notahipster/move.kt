@@ -70,12 +70,14 @@ fun dispersePinks(seq: List<Move>): List<Move> {
 fun purpleWaitOptimizedRecordInfinirom(
     moves: List<Move>,
     encoding: SSEncoding<Move>,
+    numCanOptPerCart: Int,
+    removeEndingPurple: Boolean,
 ): RecordInfinirom {
     val result = mutableListOf<SSBox>()
     val curBox = mutableListOf<Move>()
     var inPurple = false
     var curPurpWaitBegin: Int? = null
-    var curPurpCanOpt = 2
+    var curBoxCanOpt = numCanOptPerCart
     var i = 0
     var nRemoved = 0
     while (i < moves.size) {
@@ -84,31 +86,34 @@ fun purpleWaitOptimizedRecordInfinirom(
         if (move == Move.purple) {
             inPurple = !inPurple
             if (inPurple) {
-                curPurpCanOpt = 2
                 curPurpWaitBegin = null
+            }
+            if (!inPurple && removeEndingPurple) {
+                curBox.removeLast()
             }
         } else if (move == Move.wait) {
             curPurpWaitBegin = curPurpWaitBegin ?: curBox.lastIndex
         }
         if (curBox.size == CHEST_MAX) {
             if (inPurple) {
-                if (curPurpCanOpt > 0 && curPurpWaitBegin != null && curBox[curPurpWaitBegin] == Move.wait &&
+                if (curBoxCanOpt > 0 && curPurpWaitBegin != null && curBox[curPurpWaitBegin] == Move.wait &&
                     moves.getOrNull(i) != Move.purple
                 ) {
                     curBox.removeAt(curPurpWaitBegin)
-                    curPurpCanOpt--
+                    curBoxCanOpt--
                     nRemoved++
                     continue
                 }
-                while (curPurpCanOpt > 0 && moves.getOrNull(i) == Move.wait) {
+                while (curBoxCanOpt > 0 && moves.getOrNull(i) == Move.wait) {
                     i++
-                    curPurpCanOpt--
+                    curBoxCanOpt--
                     nRemoved++
                 }
             }
             result.add(encoding.encode(curBox).let(::SSBox))
             curBox.clear()
             curPurpWaitBegin = null
+            curBoxCanOpt = numCanOptPerCart
         }
     }
 
