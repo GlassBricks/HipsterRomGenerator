@@ -64,9 +64,10 @@ fun dispersePinks(seq: List<Move>): List<Move> {
     return result
 }
 
-// Boundary between carts adds 2 free 2 waiting moves.
+// Boundary between carts adds some number of free waiting moves.
 // But waits only happen inside purple tapes.
-// So, if purples span a chest, can remove 2 waiting moves ANYWHERE in between purples
+// So, if purples span a cart, can remove that number waiting moves ANYWHERE in between purples.
+// Also handle case when wait moves span multiple carts
 fun purpleWaitOptimizedRecordInfinirom(
     moves: List<Move>,
     encoding: SSEncoding<Move>,

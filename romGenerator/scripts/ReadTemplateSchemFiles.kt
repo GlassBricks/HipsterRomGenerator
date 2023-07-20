@@ -19,12 +19,16 @@ class ReadTemplateSchemFiles : StringSpec({
     "read chungus" {
         readFile("templates/chungus-rom-template.schem", true)
     }
+    "read gb-temp" {
+        readFile("templates/gb-temp.schem", true)
+    }
 })
 
 fun readFile(name: String, writeFile: Boolean = false) {
     val nbt = Nbt { ignoreUnknownKeys = true }
-    val file = Thread.currentThread().contextClassLoader.getResourceAsStream(name) ?: error("File not found")
-    val stream = GZIPInputStream(file.buffered())
+//    val file = Thread.currentThread().contextClassLoader.getResourceAsStream(name) ?: error("File not found")
+    val file = File(name)
+    val stream = GZIPInputStream(file.inputStream().buffered())
     val tag = nbt.decodeToTagFromStream(stream)
     println(tag)
     if(writeFile) {
