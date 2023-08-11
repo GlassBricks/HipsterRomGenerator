@@ -12,3 +12,5 @@ fun String.splitCamelCase(): String =
             "(?<=[A-Za-z])(?=[^A-Za-z])"
         ).toRegex(), " "
     ).lowercase(Locale.getDefault())
+
+infix fun Int.divCeil(b: Int) = (this + b - 1) / b

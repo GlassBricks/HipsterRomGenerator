@@ -1,6 +1,7 @@
 package me.glassbricks.infinirom
 
 import me.glassbricks.CHEST_MAX
+import me.glassbricks.divCeil
 import me.glassbricks.knbt.compoundTag
 import me.glassbricks.schem.DataVersions
 import me.glassbricks.schem.Entity
@@ -63,12 +64,10 @@ private fun partitionWithRestrictions(
     forEach { require(it in minPerPartition..maxPerPartition) }
 }
 
-fun divCeil(a: Int, b: Int): Int = (a + b - 1) / b
-
 private fun partitionRecordsToCarts(numRecords: Int): List<Int> {
     require(numRecords >= MinRecordsPerRom)
     val maxPerCart = CHEST_MAX * CHEST_MAX
-    val numCarts = divCeil(numRecords, maxPerCart).coerceAtLeast(MinCarts)
+    val numCarts = numRecords.divCeil(maxPerCart).coerceAtLeast(MinCarts)
 
     return partitionWithRestrictions(
         numItems = numRecords,
@@ -127,7 +126,7 @@ fun waitOptimizedChungusRom(
 ): ChungusRom {
     require(ss.size > MinRecordsPerRom)
     val maxPerCart = CHEST_MAX * CHEST_MAX
-    val numCarts = divCeil(ss.size, maxPerCart).coerceAtLeast(MinCarts)
+    val numCarts = ss.size.divCeil(maxPerCart).coerceAtLeast(MinCarts)
     val numBoxes = numCarts * CHEST_MAX
 
     // greedily divide boxes whenever there's a waiting move, with (at least min size + 1) for each box

@@ -8,7 +8,7 @@ import me.glassbricks.schem.writeSchematic
 import java.io.File
 
 
-fun writeSimpleSchem(
+private fun writeSimpleSchem(
     seq: List<Move>,
     name: String,
 ) {

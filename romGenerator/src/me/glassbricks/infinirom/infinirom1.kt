@@ -8,7 +8,14 @@ import me.glassbricks.schem.SchemFile
 // up to 1 item per cart
 
 fun SignalStrength.toChestMinecart(): Entity {
-    // div 64, rounded up
+    if (ss == 0) {
+        return Entity(
+            Id = "minecraft:furnace_minecart",
+            Items = null,
+            Pos = listOf(0.5, 0.0, 0.5),
+        )
+    }
+
     val items = List(numCartStacks()) { index ->
         Item(
             Slot = index.toByte(),
@@ -19,7 +26,7 @@ fun SignalStrength.toChestMinecart(): Entity {
     return Entity(
         Id = "minecraft:chest_minecart",
         Items = items,
-        Pos = listOf(0.0, 0.0, 0.0),
+        Pos = listOf(0.5, 0.0, 0.5),
     )
 }
 

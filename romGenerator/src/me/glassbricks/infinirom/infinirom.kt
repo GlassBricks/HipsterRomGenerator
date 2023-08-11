@@ -7,11 +7,11 @@ import me.glassbricks.schem.Item
 @JvmInline
 value class SignalStrength(val ss: Int) {
     init {
-        require(ss in 1..15)
+        require(ss in 0..15)
     }
 }
 
-class SSEncoding<T> private constructor(
+class SSEncoding<T>(
     private val map: Map<T, SignalStrength>,
 ) : Map<T, SignalStrength> by map {
 
@@ -23,6 +23,10 @@ class SSEncoding<T> private constructor(
 
 
     fun encode(sequence: Iterable<T>): List<SignalStrength> = sequence.map(this::get)
+}
+
+inline fun <reified T : Enum<T>> enumEncoding(): SSEncoding<T> {
+    return SSEncoding(enumValues<T>().associateWith { SignalStrength(it.ordinal) })
 }
 
 

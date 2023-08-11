@@ -33,7 +33,7 @@ object DataVersions {
 
 @Serializable
 class ChestBlockEntity(
-    val Items: List<Item>,
+    val Items: List<Item> = emptyList(),
     val Pos: IntArray,
 ) {
     val Id = "minecraft:chest"
