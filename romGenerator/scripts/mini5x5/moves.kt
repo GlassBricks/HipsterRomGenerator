@@ -1,11 +1,14 @@
 package mini5x5
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.infinirom.*
+import me.glassbricks.infinirom.encode
+import me.glassbricks.infinirom.ordinalEncoding
+import me.glassbricks.infinirom.toInifinirom1
 import me.glassbricks.schem.writeSchematic
 import mini5x5.Move.*
 import java.io.File
 
+@Suppress("EnumEntryName")
 enum class Move {
     empty,
     t1,
@@ -14,7 +17,6 @@ enum class Move {
     bot,
     dpe,
     store;
-
 }
 
 val seq = listOf(
@@ -48,12 +50,9 @@ val seq = listOf(
     empty,
 )
 
-val encoding = ordinalEncoding<Move>()
-
-
 class Gen : StringSpec({
     "gen" {
-        val ssSeq = encoding.encode(seq)
+        val ssSeq = ordinalEncoding<Move>().encode(seq)
         val schem = ssSeq.toInifinirom1()
 
         val file = File("mini5x5.schem")

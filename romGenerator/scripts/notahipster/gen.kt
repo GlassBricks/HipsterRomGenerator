@@ -7,12 +7,23 @@ import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
+class Params(
+    val tapeWaitMoves: List<Int>,
+    val addPurpleInnerMovesFirst: Boolean,
+    val addFinalPurple: Boolean,
+    val pinkTapeSize: Int,
+    val pinkTapeInitialPos: Int,
+    val doPinkDisperse: Boolean,
+    val doWaitOptimization: Int,
+    val encoding: SSEncoding<Move>,
+)
+
 private val params = Params(
-    waitMoves = listOf(28, 29, 31, 34, 36, 38, 40),
+    tapeWaitMoves = listOf(28, 29, 31, 34, 36, 38, 40),
     addPurpleInnerMovesFirst = true,
     addFinalPurple = false,
-    pinkSize = 16,
-    initialPinkPos = -6 + 16,
+    pinkTapeSize = 16,
+    pinkTapeInitialPos = -6 + 16,
     doPinkDisperse = false,
     doWaitOptimization = 3,
     encoding = SSEncoding(
@@ -38,17 +49,6 @@ fun main() {
     genFullSeq()
     zipOutDir()
 }
-
-class Params(
-    val waitMoves: List<Int>,
-    val addPurpleInnerMovesFirst: Boolean,
-    val addFinalPurple: Boolean,
-    val pinkSize: Int,
-    val initialPinkPos: Int,
-    val doPinkDisperse: Boolean,
-    val doWaitOptimization: Int,
-    val encoding: SSEncoding<Move>,
-)
 
 /*
 old encoding
@@ -89,8 +89,8 @@ private fun genEachRow() {
         val gen = SeqGen(
 //        pinkTapeLevel = params.initialPinkPos,
             pinkTapeLevel = 0,
-            pinkSize = params.pinkSize,
-            waitMoves = params.waitMoves,
+            pinkSize = params.pinkTapeSize,
+            waitMoves = params.tapeWaitMoves,
             addPurpleInnerMovesFirst = params.addPurpleInnerMovesFirst,
         )
         fn(gen)
@@ -100,16 +100,16 @@ private fun genEachRow() {
 
 private fun genFullSeq() {
     val gen = SeqGen(
-        pinkTapeLevel = params.initialPinkPos,
-        pinkSize = params.pinkSize,
-        waitMoves = params.waitMoves,
+        pinkTapeLevel = params.pinkTapeInitialPos,
+        pinkSize = params.pinkTapeSize,
+        waitMoves = params.tapeWaitMoves,
         addPurpleInnerMovesFirst = params.addPurpleInnerMovesFirst,
     )
     for (fn in rowFns) fn(gen)
     // final moves
     gen.apply {
         dpe // floor block
-        while (pinkTapeLevel != params.initialPinkPos) add(Move.pink)
+        while (pinkTapeLevel != params.pinkTapeInitialPos) add(Move.pink)
     }
 
 //    println(gen.moves)

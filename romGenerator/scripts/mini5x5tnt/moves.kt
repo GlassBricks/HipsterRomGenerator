@@ -8,10 +8,12 @@ import me.glassbricks.schem.writeSchematic
 import ogMegafoldHipster.SimpleSequenceVisitor
 import java.io.File
 
+@Suppress("EnumEntryName")
 enum class Move {
     none,
     worm,
     a,
+    @Suppress("unused")
     wait,
     sto,
     r,
@@ -26,26 +28,13 @@ class B : SimpleSequenceVisitor<Move>() {
     val none get() = add(Move.none)
     val worm get() = add(Move.worm)
     val a get() = add(Move.a)
-    val wait get() = add(Move.wait)
+
+    //    val wait get() = add(Move.wait)
     val sto get() = add(Move.sto)
     val r get() = add(Move.r)
     val b get() = add(Move.b)
     val c get() = add(Move.c)
     val l get() = add(Move.l)
-
-
-    operator fun String.unaryPlus() {
-        for (char in this) when (char) {
-            'a' -> a
-            'b' -> b
-            'c' -> c
-            'r' -> r
-            'l' -> l
-            'F' -> ras()
-            ' ', '\n' -> {}
-            else -> error("invalid char '$char'")
-        }
-    }
 
 
     fun seq() {
@@ -56,19 +45,13 @@ class B : SimpleSequenceVisitor<Move>() {
     }
 
     fun closing() {
-        a
-        repeat(3) { worm; a }
-        worm
+        repeat(4) { a; worm }
         b; b
         r; r
     }
 
-    fun ras() {
-        r;r;a;a;sto;sto
-    }
-
     fun opening() {
-        +"""
+        val seq = """
         F
         
         bab r
@@ -93,6 +76,20 @@ class B : SimpleSequenceVisitor<Move>() {
         c bb r a a r baba c bb r baa b a r c bb 
         rr a c bb r aa r b a b rr a
         """
+
+        for (char in seq) when (char) {
+            'a' -> a
+            'b' -> b
+            'c' -> c
+            'r' -> r
+            'l' -> l
+            'F' -> {
+                r; r; a; a; sto; sto
+            }
+
+            ' ', '\n' -> {}
+            else -> error("invalid char '$char'")
+        }
     }
 }
 

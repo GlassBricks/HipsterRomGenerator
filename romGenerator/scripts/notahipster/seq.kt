@@ -37,7 +37,7 @@ fun B.row1234() {
 fun B.row4Retract(andTape5: Boolean = false) {
     tape(1)
 
-    val b: MoveBlock = {
+    val b: MoveAdd.() -> Unit = {
         tpe
         d
         dpe

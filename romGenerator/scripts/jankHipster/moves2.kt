@@ -1,10 +1,9 @@
 package jankHipster
 
-import jankHipster.Move.*
 import io.kotest.matchers.shouldBe
+import jankHipster.Move.*
 import me.glassbricks.infinirom.SSEncoding
 import ogMegafoldHipster.SimpleSequenceVisitor
-import kotlin.math.roundToInt
 
 
 class HipSequences(
@@ -30,7 +29,7 @@ class HipSequences(
     }
 
 
-    private val jankSeq = arrayOf(jank, t1, t3, o)
+    private val J = arrayOf(jank, t1, t3, o)
     private var obsOut = false
         set(value) {
             if (value == field) {
@@ -52,8 +51,7 @@ class HipSequences(
             2 -> add(bot, t4)
             3 -> add(bot, fold, t4)
             4 -> add(bot, fold2, t4)
-//            else -> error("Invalid row: $row")
-            else -> (row/2)
+            else -> error("Invalid row: $row")
         }
     }
 
@@ -111,7 +109,7 @@ class HipSequences(
                 }
             }
 
-            3 -> jankSeq()
+            3 -> addAll(J)
             4 -> add(o, t4, t4, o)
             5 -> {
                 add(o, mid)
@@ -171,11 +169,7 @@ class HipSequences(
                 obsOut = true
             }
 
-//            else -> TODO("pow($n)")
-            else -> {
-                // dummy
-                o * (n*2.1).roundToInt()
-            }
+            else -> TODO("pow($n)")
         }
 
         // now, retract the bottommost obs(es)

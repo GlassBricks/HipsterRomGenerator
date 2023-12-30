@@ -17,7 +17,7 @@ private fun writeSimpleSchem(
     seq: List<Move>,
     name: String,
 ) {
-    val rom = encodeSimpleChungusRom(seq, ChungusEncoding, romRestrictions)
+    val rom = encodeSimpleChungusRom(seq, encoding, romRestrictions)
     val schem = rom.toSchem()
     File(name).writeSchematic(schem)
 }
@@ -26,7 +26,7 @@ fun writeOptimizedSchem(
     seq: List<Move>,
     name: String,
 ) {
-    val rom = encodeWaitOptimizedChungusRom(seq, ChungusEncoding, romRestrictions)
+    val rom = encodeWaitOptimizedChungusRom(seq, encoding, romRestrictions)
     val schem = rom.toSchem()
     File(name).writeSchematic(schem)
 }

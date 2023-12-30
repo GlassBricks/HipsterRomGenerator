@@ -29,6 +29,23 @@ enum class Move(strName: String? = null) {
     override fun toString(): String = strName
 }
 
+val encoding = SSEncoding(
+    t1 to 1,
+    t3 to 2,
+    storage to 3,
+    t4 to 4,
+    mid to 5,
+    fold1 to 6,
+    bot to 7,
+    fold3 to 8,
+    b to 9,
+    fold2 to 10,
+    back to 11,
+    o to 12,
+    jank to 13,
+    wait to 14,
+    waitingMove = wait,
+)
 
 class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
 
@@ -341,20 +358,3 @@ fun getChungusSequence(
     fn: ChungusSeqBuilder.() -> Unit,
 ): List<Move> = ChungusSeqBuilder().apply(fn).build()
 
-val ChungusEncoding = SSEncoding(
-    t1 to 1,
-    t3 to 2,
-    storage to 3,
-    t4 to 4,
-    mid to 5,
-    fold1 to 6,
-    bot to 7,
-    fold3 to 8,
-    b to 9,
-    fold2 to 10,
-    back to 11,
-    o to 12,
-    jank to 13,
-    wait to 14,
-    waitingMove = wait,
-)
