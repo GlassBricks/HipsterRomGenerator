@@ -4,7 +4,7 @@ import me.glassbricks.analyze.countItems
 import me.glassbricks.analyze.toChestsSchem
 import me.glassbricks.knbt.Nbt
 import me.glassbricks.schem.SchemFile
-import me.glassbricks.schem.writeSchematic
+import me.glassbricks.schem.writeTo
 import java.io.File
 import java.util.zip.GZIPInputStream
 
@@ -19,5 +19,5 @@ fun main() {
     print(itemCount.items)
     val itemCountSchem = toChestsSchem(itemCount)
 
-    File("romGenerator/9x9fs out", "chests.schem").writeSchematic(itemCountSchem)
+    itemCountSchem.writeTo(File("romGenerator/9x9fs out", "chests.schem"))
 }

@@ -3,7 +3,7 @@ package chungusHipster
 import io.kotest.core.spec.style.StringSpec
 import me.glassbricks.CHEST_MAX
 import me.glassbricks.infinirom.*
-import me.glassbricks.schem.writeSchematic
+import me.glassbricks.schem.writeTo
 import java.io.File
 
 private val romRestrictions = RomRestrictions(
@@ -19,7 +19,7 @@ private fun writeSimpleSchem(
 ) {
     val rom = encodeSimpleChungusRom(seq, encoding, romRestrictions)
     val schem = rom.toSchem()
-    File(name).writeSchematic(schem)
+    schem.writeTo(File(name))
 }
 
 fun writeOptimizedSchem(
@@ -28,7 +28,7 @@ fun writeOptimizedSchem(
 ) {
     val rom = encodeWaitOptimizedChungusRom(seq, encoding, romRestrictions)
     val schem = rom.toSchem()
-    File(name).writeSchematic(schem)
+    schem.writeTo(File(name))
 }
 
 class MakeSchems : StringSpec({

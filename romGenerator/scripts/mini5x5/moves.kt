@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.StringSpec
 import me.glassbricks.infinirom.encode
 import me.glassbricks.infinirom.ordinalEncoding
 import me.glassbricks.infinirom.toInifinirom1
-import me.glassbricks.schem.writeSchematic
+import me.glassbricks.schem.writeTo
 import mini5x5.Move.*
 import java.io.File
 
@@ -56,6 +56,6 @@ class Gen : StringSpec({
         val schem = ssSeq.toInifinirom1()
 
         val file = File("mini5x5.schem")
-        file.writeSchematic(schem)
+        schem.writeTo(file)
     }
 })

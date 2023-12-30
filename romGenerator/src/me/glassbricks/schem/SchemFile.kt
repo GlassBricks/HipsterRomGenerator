@@ -64,11 +64,11 @@ class Entity(
 )
 
 
-fun File.writeSchematic(schematic: SchemFile) {
-    absoluteFile.parentFile.mkdirs()
-    val stream = outputStream().buffered().let(::GZIPOutputStream)
+fun SchemFile.writeTo(file: File) {
+    file.absoluteFile.parentFile.mkdirs()
+    val stream = file.outputStream().buffered().let(::GZIPOutputStream)
     stream.use {
-        nbt.encodeToStream(it, SchemFile.serializer(), schematic)
+        nbt.encodeToStream(it, SchemFile.serializer(), this)
     }
-    println("wrote to $absolutePath")
+    println("wrote to ${file.absolutePath}")
 }

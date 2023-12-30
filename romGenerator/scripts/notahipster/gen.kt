@@ -2,7 +2,7 @@ package notahipster
 
 import me.glassbricks.infinirom.SSEncoding
 import me.glassbricks.infinirom.toRecordCartSchem
-import me.glassbricks.schem.writeSchematic
+import me.glassbricks.schem.writeTo
 import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -123,7 +123,7 @@ private fun writeSchem(gen: SeqGen, file: File) {
     val rom = purpleWaitOptimizedRecordInfinirom(moves, params.encoding, params.doWaitOptimization, !params.addFinalPurple)
 
     val schem = rom.toRecordCartSchem(rotation = 90f)
-    file.writeSchematic(schem)
+    schem.writeTo(file)
 }
 
 

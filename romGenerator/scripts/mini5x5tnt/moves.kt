@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.StringSpec
 import me.glassbricks.infinirom.encode
 import me.glassbricks.infinirom.ordinalEncoding
 import me.glassbricks.infinirom.toInifinirom1
-import me.glassbricks.schem.writeSchematic
+import me.glassbricks.schem.writeTo
 import ogMegafoldHipster.SimpleSequenceVisitor
 import java.io.File
 
@@ -98,6 +98,6 @@ class Gen : StringSpec({
         val theSeq = B().apply(B::seq).build()
         val ssSeq = ordinalEncoding<Move>().encode(theSeq)
         val schem = ssSeq.toInifinirom1()
-        File("mini5x5tnt.schem").writeSchematic(schem)
+        schem.writeTo(File("mini5x5tnt.schem"))
     }
 })

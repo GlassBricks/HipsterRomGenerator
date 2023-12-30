@@ -1,7 +1,7 @@
 import io.kotest.core.spec.style.FreeSpec
 import me.glassbricks.CHEST_MAX
 import me.glassbricks.infinirom.*
-import me.glassbricks.schem.writeSchematic
+import me.glassbricks.schem.writeTo
 import ogMegafoldHipster.SimpleSequenceVisitor
 import java.io.File
 
@@ -83,6 +83,6 @@ class Gen : FreeSpec({
         println(seq.joinToString(" ") { it.name })
         val rom = encodeSimpleChungusRom(seq, encoding, romRestrictions)
         val schem = rom.toSchem()
-        File("botclosing.schem").writeSchematic(schem)
+        schem.writeTo(File("botclosing.schem"))
     }
 })

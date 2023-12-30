@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.StringSpec
 import me.glassbricks.infinirom.SSEncoding
 import me.glassbricks.infinirom.encode
 import me.glassbricks.infinirom.toInifinirom1
-import me.glassbricks.schem.writeSchematic
+import me.glassbricks.schem.writeTo
 import ogMegafoldHipster.getSequence
 import java.io.File
 
@@ -14,7 +14,7 @@ fun List<Move>.writeInfRomSchem(
     encoding: SSEncoding<Move> = encoding1,
 ) {
     val schem = encoding.encode(this).toInifinirom1()
-    File(name).writeSchematic(schem)
+    schem.writeTo(File(name))
 }
 
 class MakeSchems : StringSpec({
