@@ -13,33 +13,35 @@ import me.glassbricks.schem.SchemFile
 class BoxCart(val boxes: List<SSBox>)
 class ChungusRom(val carts: List<BoxCart>)
 
-fun <T> simpleChungusRom(
+fun <T> encodeSimpleChungusRom(
     moves: List<T>,
     encoding: SSEncoding<T>,
-    waitingMove: T? = null,
+    romRestrictions: RomRestrictions,
 ): ChungusRom {
     val ss = encoding.encode(moves)
-    val waitingSS = waitingMove?.let { encoding[waitingMove] }
-    return simpleChungusRom(ss, waitingSS)
+    return simpleChungusRom(ss, encoding.waitingMove, romRestrictions)
 }
 
-fun <T> waitOptimizedChungusRom(
+fun <T> encodeWaitOptimizedChungusRom(
     moves: List<T>,
     encoding: SSEncoding<T>,
-    waitingMove: T,
+    romRestrictions: RomRestrictions,
 ): ChungusRom {
     val ss = encoding.encode(moves)
-    val waitingSS = encoding[waitingMove]
-    return waitOptimizedChungusRom(ss, waitingSS)
+    encoding.waitingMove ?: error("Cannot optimize without waiting move")
+    return waitOptimizedChungusRom(ss, encoding.waitingMove, romRestrictions)
 }
 
-
-const val MinBoxSize = 3
-const val MinInLastBox = 10
-const val MinRecordsPerCart = (MinBoxSize * (CHEST_MAX - 1)) + MinInLastBox
-const val MaxRecordsPerCart = CHEST_MAX * CHEST_MAX
-const val MinCarts = 3
-const val MinRecordsPerRom = MinRecordsPerCart * MinCarts
+class RomRestrictions(
+    val minBoxSize: Int,
+    val minInSomeBox: Int = minBoxSize,
+    val minBoxesPerCart: Int,
+    val minCarts: Int,
+) {
+    val minRecordsPerCart = (minBoxSize * (minBoxesPerCart - 1)) + minInSomeBox
+    val maxRecordsPerCart = CHEST_MAX * CHEST_MAX
+    val minRecordsPerRom = minRecordsPerCart * minCarts
+}
 
 private fun partitionWithRestrictions(
     numItems: Int,
@@ -51,7 +53,7 @@ private fun partitionWithRestrictions(
 
     var remaining = numItems
 
-    for (i in 0 until numPartitions) {
+    for (i in 0..<numPartitions) {
         val numLater = numPartitions - (i + 1)
         val minLater = numLater * minPerPartition
         val maxForThis = remaining - minLater
@@ -64,53 +66,59 @@ private fun partitionWithRestrictions(
     forEach { require(it in minPerPartition..maxPerPartition) }
 }
 
-private fun partitionRecordsToCarts(numRecords: Int): List<Int> {
-    require(numRecords >= MinRecordsPerRom)
+private fun partitionRecordsToCarts(
+    restrictions: RomRestrictions,
+    numRecords: Int,
+): List<Int> {
+    require(numRecords >= restrictions.minRecordsPerRom)
     val maxPerCart = CHEST_MAX * CHEST_MAX
-    val numCarts = numRecords.divCeil(maxPerCart).coerceAtLeast(MinCarts)
+    val numCarts = numRecords.divCeil(maxPerCart).coerceAtLeast(restrictions.minCarts)
 
     return partitionWithRestrictions(
         numItems = numRecords,
         numPartitions = numCarts,
-        minPerPartition = MinRecordsPerCart,
-        maxPerPartition = MaxRecordsPerCart,
+        minPerPartition = restrictions.minRecordsPerCart,
+        maxPerPartition = restrictions.maxRecordsPerCart,
     )
 }
 
-private fun partitionRecordsToShulkerBoxes(numRecords: Int): List<Int> {
-    require(numRecords >= MinRecordsPerCart)
+private fun partitionRecordsToShulkerBoxes(
+    restrictions: RomRestrictions,
+    numRecords: Int,
+): List<Int> {
+    require(numRecords >= restrictions.minRecordsPerCart)
     return partitionWithRestrictions(
         numItems = numRecords,
         numPartitions = CHEST_MAX,
-        minPerPartition = MinBoxSize,
+        minPerPartition = restrictions.minBoxSize,
         maxPerPartition = CHEST_MAX,
     )
 }
 
-
 fun simpleChungusRom(
-    ss: List<SignalStrength>,
-    waitingMove: SignalStrength? = null,
+    ssList: List<SignalStrength>,
+    waitingMove: SignalStrength?,
+    restrictions: RomRestrictions,
 ): ChungusRom {
-    val actualSS =
-        if (ss.size >= MinRecordsPerRom) {
-            ss
+    val actualSSList =
+        if (ssList.size >= restrictions.minRecordsPerRom) {
+            ssList
         } else {
             waitingMove ?: error("Cannot pad to minimum without waiting move")
-            ss.toMutableList().apply {
-                repeat(MinRecordsPerRom - ss.size) { add(waitingMove) }
+            ssList.toMutableList().apply {
+                repeat(restrictions.minRecordsPerRom - ssList.size) { add(waitingMove) }
             }
         }
 
     var iRom = 0
-    val cartSizes = partitionRecordsToCarts(actualSS.size)
+    val cartSizes = partitionRecordsToCarts(restrictions, actualSSList.size)
     val carts = cartSizes.map { numInCart ->
-        val cartSS = actualSS.subList(iRom, iRom + numInCart)
+        val cartSSList = actualSSList.subList(iRom, iRom + numInCart)
         iRom += numInCart
 
         var iCart = 0
-        val boxes = partitionRecordsToShulkerBoxes(numInCart).map { numInBox ->
-            val boxSS = cartSS.subList(iCart, iCart + numInBox)
+        val boxes = partitionRecordsToShulkerBoxes(restrictions, numInCart).map { numInBox ->
+            val boxSS = cartSSList.subList(iCart, iCart + numInBox)
             iCart += numInBox
             SSBox(boxSS)
         }
@@ -123,10 +131,11 @@ fun simpleChungusRom(
 fun waitOptimizedChungusRom(
     ss: List<SignalStrength>,
     waitingMove: SignalStrength,
+    restrictions: RomRestrictions,
 ): ChungusRom {
-    require(ss.size > MinRecordsPerRom)
+    require(ss.size > restrictions.minRecordsPerRom)
     val maxPerCart = CHEST_MAX * CHEST_MAX
-    val numCarts = ss.size.divCeil(maxPerCart).coerceAtLeast(MinCarts)
+    val numCarts = ss.size.divCeil(maxPerCart).coerceAtLeast(restrictions.minCarts)
     val numBoxes = numCarts * CHEST_MAX
 
     // greedily divide boxes whenever there's a waiting move, with (at least min size + 1) for each box
@@ -151,16 +160,14 @@ fun waitOptimizedChungusRom(
         return initialDivision
     }
 
-    val initialDivision = initialDivision(ss, MinBoxSize + 1)
+    val initialDivision = initialDivision(ss, restrictions.minBoxSize + 1)
 
     val split = initialDivision.flatMap { box ->
         buildList {
             var i = 0
             while ((box.size - i) > CHEST_MAX) {
-//                add(box.subList(i, i + ChestSize))
-//                i += ChestSize
                 val remainingNumItems = (box.size - i - CHEST_MAX)
-                val maxCanTake = maxOf(CHEST_MAX, remainingNumItems - MinBoxSize)
+                val maxCanTake = maxOf(CHEST_MAX, remainingNumItems - restrictions.minBoxSize)
                 add(box.subList(i, i + maxCanTake))
                 i += maxCanTake
             }
@@ -195,7 +202,7 @@ fun waitOptimizedChungusRom(
 
     val chests = mergeResult.chunked(CHEST_MAX)
 
-    require(chests.all { it.sumOf { it.size } >= MinRecordsPerCart })
+    require(chests.all { it.sumOf { it.size } >= restrictions.minRecordsPerCart })
 
     var numOptimized = 0
     val carts = chests.map { chest ->
@@ -214,7 +221,6 @@ fun waitOptimizedChungusRom(
 
 
     return ChungusRom(carts)
-
 }
 
 

@@ -355,5 +355,6 @@ val ChungusEncoding = SSEncoding(
     back to 11,
     o to 12,
     jank to 13,
-    wait to 14
+    wait to 14,
+    waitingMove = wait,
 )

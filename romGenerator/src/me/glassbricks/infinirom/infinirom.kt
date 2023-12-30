@@ -11,22 +11,30 @@ value class SignalStrength(val ss: Int) {
     }
 }
 
+
 class SSEncoding<T>(
     private val map: Map<T, SignalStrength>,
-) : Map<T, SignalStrength> by map {
+    waitingMove: T? = null,
+) {
+    val waitingMove: SignalStrength? = map[waitingMove]
 
-    constructor(vararg values: Pair<T, Int>) : this(values.toMap().mapValues { SignalStrength(it.value) })
+    constructor(
+        vararg values: Pair<T, Int>,
+        waitingMove: T? = null,
+    ) : this(values.associate { (k, v) -> k to SignalStrength(v) }, waitingMove)
 
-    override fun get(key: T): SignalStrength {
+    operator fun get(key: T): SignalStrength {
         return map[key] ?: error("No signal strength for $key")
     }
-
-
-    fun encode(sequence: Iterable<T>): List<SignalStrength> = sequence.map(this::get)
 }
 
-inline fun <reified T : Enum<T>> enumEncoding(): SSEncoding<T> {
-    return SSEncoding(enumValues<T>().associateWith { SignalStrength(it.ordinal) })
+fun <T> SSEncoding<T>.encode(sequence: Iterable<T>): List<SignalStrength> = sequence.map(this::get)
+
+inline fun <reified T : Enum<T>> ordinalEncoding(
+    offest: Int = 0,
+    waitingMove: T? = null,
+): SSEncoding<T> {
+    return SSEncoding(enumValues<T>().associateWith { SignalStrength(it.ordinal + offest) }, waitingMove)
 }
 
 

@@ -1,18 +1,23 @@
 package chungusHipster
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.infinirom.simpleChungusRom
-import me.glassbricks.infinirom.toSchem
-import me.glassbricks.infinirom.waitOptimizedChungusRom
+import me.glassbricks.CHEST_MAX
+import me.glassbricks.infinirom.*
 import me.glassbricks.schem.writeSchematic
 import java.io.File
 
+private val romRestrictions = RomRestrictions(
+    minBoxSize = 3,
+    minInSomeBox = 10,
+    minBoxesPerCart = CHEST_MAX,
+    minCarts = 3,
+)
 
 private fun writeSimpleSchem(
     seq: List<Move>,
     name: String,
 ) {
-    val rom = simpleChungusRom(seq, ChungusEncoding, Move.wait)
+    val rom = encodeSimpleChungusRom(seq, ChungusEncoding, romRestrictions)
     val schem = rom.toSchem()
     File(name).writeSchematic(schem)
 }
@@ -21,7 +26,7 @@ fun writeOptimizedSchem(
     seq: List<Move>,
     name: String,
 ) {
-    val rom = waitOptimizedChungusRom(seq, ChungusEncoding, Move.wait)
+    val rom = encodeWaitOptimizedChungusRom(seq, ChungusEncoding, romRestrictions)
     val schem = rom.toSchem()
     File(name).writeSchematic(schem)
 }

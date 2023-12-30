@@ -1,9 +1,7 @@
 package mini5x5
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.infinirom.SSEncoding
-import me.glassbricks.infinirom.SignalStrength
-import me.glassbricks.infinirom.toInifinirom1
+import me.glassbricks.infinirom.*
 import me.glassbricks.schem.writeSchematic
 import mini5x5.Move.*
 import java.io.File
@@ -50,7 +48,7 @@ val seq = listOf(
     empty,
 )
 
-val encoding = SSEncoding(entries.associateWith { SignalStrength(it.ordinal) })
+val encoding = ordinalEncoding<Move>()
 
 
 class Gen : StringSpec({

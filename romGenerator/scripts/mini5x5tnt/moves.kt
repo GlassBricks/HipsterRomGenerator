@@ -1,7 +1,8 @@
 package mini5x5tnt
 
 import io.kotest.core.spec.style.StringSpec
-import me.glassbricks.infinirom.enumEncoding
+import me.glassbricks.infinirom.encode
+import me.glassbricks.infinirom.ordinalEncoding
 import me.glassbricks.infinirom.toInifinirom1
 import me.glassbricks.schem.writeSchematic
 import ogMegafoldHipster.SimpleSequenceVisitor
@@ -98,7 +99,7 @@ class B : SimpleSequenceVisitor<Move>() {
 class Gen : StringSpec({
     "gen" {
         val theSeq = B().apply(B::seq).build()
-        val ssSeq = enumEncoding<Move>().encode(theSeq)
+        val ssSeq = ordinalEncoding<Move>().encode(theSeq)
         val schem = ssSeq.toInifinirom1()
         File("mini5x5tnt.schem").writeSchematic(schem)
     }

@@ -1,10 +1,7 @@
 package notahipster
 
 import me.glassbricks.CHEST_MAX
-import me.glassbricks.infinirom.RecordInfinirom
-import me.glassbricks.infinirom.SSBox
-import me.glassbricks.infinirom.SSEncoding
-import me.glassbricks.infinirom.fullSSBox
+import me.glassbricks.infinirom.*
 
 
 @Suppress("EnumEntryName")

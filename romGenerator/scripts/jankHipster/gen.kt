@@ -2,6 +2,7 @@ package jankHipster
 
 import io.kotest.core.spec.style.StringSpec
 import me.glassbricks.infinirom.SSEncoding
+import me.glassbricks.infinirom.encode
 import me.glassbricks.infinirom.toInifinirom1
 import me.glassbricks.schem.writeSchematic
 import ogMegafoldHipster.getSequence
