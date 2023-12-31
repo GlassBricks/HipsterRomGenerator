@@ -1,7 +1,6 @@
-package me.glassbricks
+package me.glassbricks.schem
 
 import me.glassbricks.infinirom.nbt
-import me.glassbricks.schem.SchemFile
 import java.io.File
 import java.util.zip.GZIPOutputStream
 

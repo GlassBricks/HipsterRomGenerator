@@ -4,3 +4,4 @@
 .gradle/
 *.schem
 out/
+transfer.sh
