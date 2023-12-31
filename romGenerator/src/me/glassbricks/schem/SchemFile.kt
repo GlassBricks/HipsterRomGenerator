@@ -5,6 +5,7 @@ package me.glassbricks.schem
 import kotlinx.serialization.Serializable
 import me.glassbricks.infinirom.nbt
 import me.glassbricks.knbt.CompoundTag
+import me.glassbricks.resolveOut
 import java.io.File
 import java.util.zip.GZIPOutputStream
 
@@ -63,10 +64,25 @@ class Entity(
     val UUID: IntArray? = null,
 )
 
+fun getCallingPackage(): String {
+    val stack = Thread.currentThread().stackTrace
+    // 0 = getStackTrace, 1 = getCallingPackage, 2 = <caller>, 3 = <caller's caller>
+    return stack[3].className.substringBeforeLast('.')
+}
 
-fun SchemFile.writeTo(file: File) {
-    file.absoluteFile.parentFile.mkdirs()
-    val stream = file.outputStream().buffered().let(::GZIPOutputStream)
+fun SchemFile.writeTo(file: String) {
+    writeTo(
+        File(
+            getCallingPackage().replace('.', File.separatorChar),
+            if (!file.endsWith(".schem")) "$file.schem" else file
+        )
+    )
+}
+
+fun SchemFile.writeTo(rfile: File) {
+    val file = rfile.resolveOut()
+    file.parentFile.mkdirs()
+    val stream = file.outputStream().let(::GZIPOutputStream)
     stream.use {
         nbt.encodeToStream(it, SchemFile.serializer(), this)
     }
