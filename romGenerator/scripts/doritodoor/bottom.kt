@@ -2,8 +2,7 @@
 
 package doritodoor
 
-import doritodoor.BotSeq.ObsState.*
-import doritodoor.BotSeq.ObsState.TuckState.*
+import doritodoor.BotSeq.StorageBlockState.*
 import io.kotest.core.spec.style.FreeSpec
 import me.glassbricks.CHEST_MAX
 import me.glassbricks.infinirom.RomRestrictions
@@ -88,7 +87,13 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
             'e' -> e
             'f' -> f
             'o' -> o
-            's' -> ssto
+            'O' -> bobs
+            's' -> {
+                wait; wait; ssto
+            }
+
+            '-' -> wait
+            'F' -> fold
             ' ', '\n' -> {}
             '#' ->
                 @Suppress("ControlFlowWithEmptyBody")
@@ -120,7 +125,7 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
     // spawns more pistons, don't sip
     private fun addPistons(layer: Int) {
         // verification
-        require(layer in 0..2)
+        require(layer in pistonOut.indices)
         val firstOut = pistonOut.indexOfFirst { it }.let { if (it == -1) maxPistonsOut else it }
         if (layer >= firstOut) {
             error("Pistons out bad order. Tried $layer, state ${pistonOut.contentToString()}")
@@ -131,6 +136,8 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
             0 -> c
             1 -> d
             2 -> e
+            3 -> f
+            4 -> +"fF"
             else -> TODO("morePistons($layer)")
         }
 
@@ -143,59 +150,63 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
             0 -> +"cb"
             1 -> +"dc"
             2 -> +"ed"
+            3 -> +"fe"
+            4 -> +"F"
             else -> TODO()
         }
         pistonOut[toRetract] = false
     }
 
-    sealed class ObsState {
-        data object Out0 : ObsState()
-
-        // when tucked, a storage block is in topmost obs, to be exchanged with obs later
-        enum class TuckState {
-            None,
-            BlockUp,
-            Tucked,
-        }
-
-        sealed class Tuckable(var tuckState: TuckState = None) : ObsState()
-
-        class Out1 : Tuckable()
-        class Out2 : Tuckable()
+    // when tucked, a storage block is in topmost obs, to be exchanged with obs later
+    enum class StorageBlockState {
+        None,
+        BlockUp,
+        Tucked,
     }
 
-    private var currentObsState: ObsState = Out0
+    private var sBlockState: StorageBlockState = None
+    private var numObsOut = 0
+
 
     private fun addObs() {
-        val state = currentObsState
-        if (state is Tuckable && state.tuckState != None) error("cannot add obs when tucked")
-        currentObsState = when (state) {
-            Out0 -> {
-                o
-                Out1()
+        check(sBlockState != BlockUp)
+        when (numObsOut++) {
+            0 -> o
+            1 -> if (sBlockState == None) {
+                +"Oo"
+            } else {
+                +"oOo"
             }
-
-            is Out1 -> {
-                bobs
-                Out2()
-            }
-
-            is Out2 -> TODO()
+            2 -> TODO()
         }
+        sBlockState = None
     }
 
     private fun removeObs() {
-        val state = currentObsState
-        if (state is Tuckable && state.tuckState == BlockUp) error("block needs to be tucked first")
-        currentObsState = when (state) {
-            Out0 -> error("No obs to retract")
-            is Out1 -> {
-                if (state.tuckState == None) o
-                else +"obsaoboo" // shuffle obs and storage block back
-                Out0
+        check(sBlockState != BlockUp)
+        if (ignoreNextRemoveObs2) {
+            check(sBlockState == Tucked)
+            ignoreNextRemoveObs2 = false
+            return
+        }
+
+        val oldState = sBlockState
+        sBlockState = None
+        when (numObsOut--) {
+            0 -> error("No obs to retract")
+            1 -> {
+                if (oldState == None) o
+                else +"ob--s--aoboo"
+                // shuffle obs and storage block back
+                // a bunch of waiting moves because reasons
             }
 
-            is Out2 -> error("Must tuck first")
+            2 -> if (oldState == None) {
+                +"sbao"
+                sBlockState = Tucked
+            } else {
+                TODO("tucked 2")
+            }
         }
     }
 
@@ -218,41 +229,47 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
     }
 
     private fun blockUp() {
-        currentObsState.let {
-            check(it is Tuckable && it.tuckState == None)
-            it.tuckState = BlockUp
-        }
+        check(sBlockState == None)
+        sBlockState = BlockUp
         +"sb"
     }
 
     private fun tuckBlockUp() {
-        currentObsState.let {
-            check(it is Tuckable && it.tuckState == BlockUp)
-            it.tuckState = Tucked
-        }
+        check(sBlockState == BlockUp)
+        sBlockState = Tucked
         +"bo"
     }
+
+    private var ignoreNextRemoveObs2 = false
 
     private fun extendWithPistonsUp(n: Int, pistonsHigh: Boolean, origHeight: Int = n) {
         require(n in 0..9)
         if (n > 0 && !pistonsHigh) b // move piston up for power or obs
 
-        if (n in 0..1) return a // directly power top piston
-        if (n == 2 && origHeight >= 5) {
-            // use a block from storage instead of another observer
-            blockUp()
-        } else {
-            // use more obs
-            addObs()
-            extend(n - 3, pistonsHigh, origHeight)
-        }
+        when {
+            n in 0..1 -> a // directly power top piston
+            n == 2 && origHeight >= 5 -> blockUp() // use a block from storage instead of another observer
+            n == 2 && origHeight == 2 && numObsOut == 1 && sBlockState == Tucked -> {
+                // use tucked block to power
+                +"oObao"
+                ignoreNextRemoveObs2 = true
+            }
 
-        // extra pulses so top piston is powered
-        when (n) {
-            2 -> b
-            3, 4 -> a
-            5 -> +"aa" // powered through block
-            else -> TODO("extraPulses($n)")
+            else -> {
+                // use more obs
+                addObs()
+                extend(n - 3, false, origHeight) // extra pulses so top piston is powered
+                when (n) {
+                    2 -> b
+                    3, 4 -> a
+                    5 -> +"aa" // powered through block
+                    6, 7 -> repeat(if (pistonsHigh) 2 else 6) { a }
+                    else -> {
+                        println(elements.takeLast(20))
+                        TODO("extraPulses($n)")
+                    }
+                }
+            }
         }
     }
 
@@ -268,8 +285,9 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
             b
             return
         }
-        // if block up, tuck it in
-        if (n == 2 && currentObsState.let { it is Tuckable && it.tuckState == BlockUp }) {
+
+        if (n == 2 && sBlockState == BlockUp) {
+            // if block up, tuck it in
             check(n % 3 == 2)
             tuckBlockUp()
         } else if (n >= 2) {
@@ -303,8 +321,6 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
         row(n - 2)
         removePistons()
     }
-
-
 }
 
 class Gen : FreeSpec({
@@ -317,11 +333,13 @@ class Gen : FreeSpec({
     }
 
     "gen opening" {
-        val seq = BotSeq().apply { opening(5) }.build()
+        val seq = BotSeq().apply { opening(7) }.build()
         println(seq.joinToString(" "))
         val rom = encodeSimpleChungusRom(seq, encoding, botRomRestrictions)
         val schem = rom.toSchem()
         schem.writeTo("bot-opening.schem")
+
+        tryTransfer("20htriangle/roms")
     }
 
     "print row 5" {
@@ -329,7 +347,7 @@ class Gen : FreeSpec({
         println(seq.joinToString(" "))
     }
 
-    "transfer" {
-        tryTransfer("20htriangle/roms")
-    }
+//    "transfer" {
+//        tryTransfer("20htriangle/roms")
+//    }
 })
