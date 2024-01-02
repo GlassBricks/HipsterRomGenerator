@@ -67,16 +67,6 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
         return super.build()
     }
 
-    fun closing() {
-        ssto; b
-        bworm; wait; ssto; b
-        repeat(5) {
-            tworm; wait; ssto; b
-        }
-        tsto; ssto
-        +"bcaba"
-        tworm
-    }
 
     operator fun String.unaryPlus() = this.iterator().let {
         while (it.hasNext()) when (val ch = it.next()) {
@@ -89,9 +79,8 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
             'o' -> o
             'O' -> bobs
             's' -> {
-                wait; wait; ssto
+                wait; ssto
             }
-
             '-' -> wait
             'F' -> fold
             ' ', '\n' -> {}
@@ -102,6 +91,16 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
         }
     }
 
+    fun closing() {
+        ssto; b
+        bworm; wait; ssto; b
+        repeat(5) {
+            tworm; wait; ssto; b
+        }
+        tsto; ssto
+        +"bcaba"
+        tworm
+    }
     fun opening(maxRow: Int = 9) {
         require(maxRow in 1..9)
         +"abacbboo" // row 1, already extended by closing
@@ -109,15 +108,13 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
             row(i)
             if (i < 9) {
                 tsto; o; o
-            }
-            if (i == 9) {
-                // keep floor bock
-                check(elements.takeLast(4) == listOf(BottomMove.a, BottomMove.c, BottomMove.b, BottomMove.b))
-                repeat(4) { elements.removeLast() }
-                c; b
+            } else {
+                // put floor block
+                pull(0)
             }
         }
     }
+
 
     private val maxPistonsOut = 5
     private val pistonOut = BooleanArray(maxPistonsOut)
@@ -177,7 +174,16 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
             } else {
                 +"oOo"
             }
-            2 -> TODO()
+            2 -> if (sBlockState == None) {
+                +"sbabo"
+            } else {
+                TODO("addObs(2), tucked")
+            }
+            // only used during 9th block
+            else -> {
+                println(elements.takeLast(20))
+                TODO("addObs($numObsOut)")
+            }
         }
         sBlockState = None
     }
@@ -196,24 +202,34 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
             0 -> error("No obs to retract")
             1 -> {
                 if (oldState == None) o
-                else +"ob--s--aoboo"
+                else +"obsaoboo"
                 // shuffle obs and storage block back
                 // a bunch of waiting moves because reasons
             }
-
-            2 -> if (oldState == None) {
-                +"sbao"
+            2 -> {
+                if (oldState == None) {
+                    +"sbao"
+                } else {
+                    +"obsaoao"
+                }
                 sBlockState = Tucked
-            } else {
-                TODO("tucked 2")
             }
+            3 -> {
+                if (oldState == None) {
+                    +"sbabo"
+                } else {
+                    error("Should not tuck with 3 obs out")
+                }
+                sBlockState = Tucked
+            }
+            else -> TODO("removeObs($numObsOut)")
         }
     }
 
     fun row(n: Int) {
         require(n in -2..9)
         if (n == -2) return // base case
-        extend(n, false, origHeight = n)
+        extend(n, false)
         retract(n)
     }
 
@@ -247,23 +263,33 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
         if (n > 0 && !pistonsHigh) b // move piston up for power or obs
 
         when {
-            n in 0..1 -> a // directly power top piston
+            n in 0..1 -> {
+                // directly power top piston
+                if (n == origHeight) a
+            }
             n == 2 && origHeight >= 5 -> blockUp() // use a block from storage instead of another observer
-            n == 2 && origHeight == 2 && numObsOut == 1 && sBlockState == Tucked -> {
+            n == 2 && origHeight == 2 && sBlockState == Tucked -> {
                 // use tucked block to power
-                +"oObao"
+                when (numObsOut) {
+                    1 -> +"oObao"
+                    2 -> +"obaooabo"
+                    else -> error("bad numObsOut")
+                }
                 ignoreNextRemoveObs2 = true
             }
-
             else -> {
                 // use more obs
                 addObs()
                 extend(n - 3, false, origHeight) // extra pulses so top piston is powered
-                when (n) {
-                    2 -> b
-                    3, 4 -> a
-                    5 -> +"aa" // powered through block
-                    6, 7 -> repeat(if (pistonsHigh) 2 else 6) { a }
+                if (n == origHeight) when (n) {
+                    2 -> b // 1st power by extend(-1 )
+                    3, 4, 5 -> +"aa" // powered through block
+                    6 -> if (!pistonsHigh) +"abbaaa" else +"bba"
+                    7, 8 -> repeat(if (pistonsHigh) 4 else 8) { a }
+                    9 -> {
+                        check(!pistonsHigh)
+                        +"abbbbaaa"
+                    }
                     else -> {
                         println(elements.takeLast(20))
                         TODO("extraPulses($n)")
@@ -333,7 +359,7 @@ class Gen : FreeSpec({
     }
 
     "gen opening" {
-        val seq = BotSeq().apply { opening(7) }.build()
+        val seq = BotSeq().apply { opening(9) }.build()
         println(seq.joinToString(" "))
         val rom = encodeSimpleChungusRom(seq, encoding, botRomRestrictions)
         val schem = rom.toSchem()
@@ -342,9 +368,10 @@ class Gen : FreeSpec({
         tryTransfer("20htriangle/roms")
     }
 
-    "print row 5" {
-        val seq = BotSeq().apply { row(5) }.build()
+    "print row " {
+        val seq = BotSeq().apply { row(7) }.build()
         println(seq.joinToString(" "))
+        seq.forEach(::println)
     }
 
 //    "transfer" {
