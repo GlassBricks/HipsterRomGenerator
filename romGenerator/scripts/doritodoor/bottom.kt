@@ -135,7 +135,6 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
             2 -> e
             3 -> f
             4 -> +"fF"
-            else -> TODO("morePistons($layer)")
         }
 
     }
@@ -149,7 +148,6 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
             2 -> +"ed"
             3 -> +"fe"
             4 -> +"F"
-            else -> TODO()
         }
         pistonOut[toRetract] = false
     }
