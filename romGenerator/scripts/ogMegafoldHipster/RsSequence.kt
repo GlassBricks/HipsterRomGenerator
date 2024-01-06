@@ -98,7 +98,7 @@ interface RsSequenceVisitor<I> {
     operator fun Array<I>.invoke() = addAll(this)
 }
 
-open class SimpleSequenceVisitor<I> : RsSequenceVisitor<I> {
+open class SequenceBuilder<I> : RsSequenceVisitor<I> {
     protected val elements = mutableListOf<I>()
 
     override fun add(element: I) {
@@ -109,7 +109,7 @@ open class SimpleSequenceVisitor<I> : RsSequenceVisitor<I> {
 }
 
 inline fun <I> getSequence(visit: RsSequenceVisitor<I>.() -> Unit) =
-    SimpleSequenceVisitor<I>().apply(visit).build()
+    SequenceBuilder<I>().apply(visit).build()
 
 class TreePrintVisitor<I> : RsSequenceVisitor<I> {
     private val out = StringWriter()

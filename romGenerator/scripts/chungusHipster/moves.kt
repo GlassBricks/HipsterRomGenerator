@@ -2,7 +2,7 @@ package chungusHipster
 
 import chungusHipster.Move.*
 import me.glassbricks.infinirom.SSEncoding
-import ogMegafoldHipster.SimpleSequenceVisitor
+import ogMegafoldHipster.SequenceBuilder
 import me.glassbricks.splitCamelCase
 
 
@@ -47,7 +47,7 @@ val encoding = SSEncoding(
     waitingMove = wait,
 )
 
-class ChungusSeqBuilder : SimpleSequenceVisitor<Move>() {
+class ChungusSeqBuilder : SequenceBuilder<Move>() {
 
     private var obsOut = 0
         set(value) {

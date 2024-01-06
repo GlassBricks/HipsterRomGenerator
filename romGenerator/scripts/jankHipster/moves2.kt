@@ -3,13 +3,13 @@ package jankHipster
 import io.kotest.matchers.shouldBe
 import jankHipster.Move.*
 import me.glassbricks.infinirom.SSEncoding
-import ogMegafoldHipster.SimpleSequenceVisitor
+import ogMegafoldHipster.SequenceBuilder
 
 
 class HipSequences(
     private val nFolds: Int = 1,
     private val nObs: Int = 2
-) : SimpleSequenceVisitor<Move>() {
+) : SequenceBuilder<Move>() {
     var expect: List<Move>? = null
 
     override fun add(element: Move) {

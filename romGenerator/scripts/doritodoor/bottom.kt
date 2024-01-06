@@ -11,7 +11,7 @@ import me.glassbricks.infinirom.ordinalEncoding
 import me.glassbricks.infinirom.toSchem
 import me.glassbricks.schem.tryTransfer
 import me.glassbricks.schem.writeTo
-import ogMegafoldHipster.SimpleSequenceVisitor
+import ogMegafoldHipster.SequenceBuilder
 
 
 @Suppress("EnumEntryName")
@@ -43,7 +43,7 @@ private val botRomRestrictions = RomRestrictions(
     minCarts = 1,
 )
 
-class BotSeq : SimpleSequenceVisitor<BottomMove>() {
+class BotSeq : SequenceBuilder<BottomMove>() {
 
     private val a get() = add(BottomMove.a)
     private val b get() = add(BottomMove.b)
@@ -119,7 +119,6 @@ class BotSeq : SimpleSequenceVisitor<BottomMove>() {
     private val maxPistonsOut = 5
     private val pistonOut = BooleanArray(maxPistonsOut)
 
-    // spawns more pistons, don't sip
     private fun addPistons(layer: Int) {
         // verification
         require(layer in pistonOut.indices)

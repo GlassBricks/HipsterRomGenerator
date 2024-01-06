@@ -5,7 +5,7 @@ import me.glassbricks.infinirom.encode
 import me.glassbricks.infinirom.ordinalEncoding
 import me.glassbricks.infinirom.toInifinirom1
 import me.glassbricks.schem.writeTo
-import ogMegafoldHipster.SimpleSequenceVisitor
+import ogMegafoldHipster.SequenceBuilder
 import java.io.File
 
 @Suppress("EnumEntryName")
@@ -22,7 +22,7 @@ enum class Move {
     l
 }
 
-class B : SimpleSequenceVisitor<Move>() {
+class B : SequenceBuilder<Move>() {
 
 
     val none get() = add(Move.none)
