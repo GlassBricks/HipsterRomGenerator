@@ -28,7 +28,7 @@ enum class BottomMove {
     fold,
     bobs,
     unbubble,
-    o,
+    obs,
     wait,
     d
 }
@@ -52,7 +52,7 @@ class BotSeq : SequenceBuilder<BottomMove>() {
     private val e get() = add(BottomMove.e)
     private val f get() = add(BottomMove.f)
     private val fold get() = add(BottomMove.fold)
-    private val o get() = add(BottomMove.o)
+    private val o get() = add(BottomMove.obs)
     private val bobs get() = add(BottomMove.bobs)
     private val bworm get() = add(BottomMove.bworm)
     private val tworm get() = add(BottomMove.tworm)
@@ -69,7 +69,7 @@ class BotSeq : SequenceBuilder<BottomMove>() {
 
 
     operator fun String.unaryPlus() = this.iterator().let {
-        while (it.hasNext()) when (val ch = it.next()) {
+        while (it.hasNext()) when (val ch = it.nextChar()) {
             'a' -> a
             'b' -> b
             'c' -> c

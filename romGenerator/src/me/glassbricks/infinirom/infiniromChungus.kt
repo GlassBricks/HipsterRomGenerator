@@ -87,9 +87,10 @@ private fun partitionRecordsToShulkerBoxes(
     numRecords: Int,
 ): List<Int> {
     require(numRecords >= restrictions.minRecordsPerCart)
+    val numPartitions = numRecords.divCeil(CHEST_MAX).coerceAtLeast(restrictions.minBoxesPerCart)
     return partitionWithRestrictions(
         numItems = numRecords,
-        numPartitions = CHEST_MAX,
+        numPartitions = numPartitions,
         minPerPartition = restrictions.minBoxSize,
         maxPerPartition = CHEST_MAX,
     )

@@ -11,14 +11,14 @@ class SchemFile(
     val Height: Short,
     val Length: Short,
 
-    val Palette: Map<String, Int>,
+    var Palette: Map<String, Int>,
     val PaletteMax: Int,
     val BlockData: ByteArray,
     val BlockEntities: List<ChestBlockEntity>,
-    val Metadata: CompoundTag? = null,
+    var Metadata: CompoundTag? = null,
     val DataVersion: Int = DataVersions.v1_16_4,
     val Entities: List<Entity>? = null,
-    val Offset: IntArray? = null,
+    var Offset: IntArray? = null,
 ) {
     val Version = 2
 }
@@ -47,7 +47,7 @@ class Item(
 @Serializable
 class Entity(
     val Id: String,
-    val Pos: List<Double>,
+    var Pos: List<Double>,
     val Air: Short = 300,
     val FallDistance: Float = 0.0f,
     val Fire: Short = -1,
@@ -56,6 +56,6 @@ class Entity(
     val Motion: DoubleArray = doubleArrayOf(0.0, 0.0, 0.0),
     val OnGround: Boolean = false,
     val PortalCooldown: Int = 0,
-    val Rotation: FloatArray = floatArrayOf(0.0f, 0.0f),
+    var Rotation: FloatArray = floatArrayOf(0.0f, 0.0f),
     val UUID: IntArray? = null,
 )

@@ -22,6 +22,9 @@ class ReadTemplateSchemFiles : StringSpec({
     "read gb-temp" {
         readFile("templates/gb-temp.schem", true)
     }
+    "read toprompos" {
+        readFile("templates/toprompos.schem", true)
+    }
 })
 
 fun readFile(name: String, writeFile: Boolean = false) {
