@@ -2,6 +2,7 @@
 
 package doritodoor
 
+import doritodoor.TopSeq.FoldState.*
 import io.kotest.core.spec.style.StringSpec
 import me.glassbricks.infinirom.RomRestrictions
 import me.glassbricks.infinirom.encodeSimpleChungusRom
@@ -132,8 +133,8 @@ class TopSeq : SequenceBuilder<TopMove>() {
         +"FEfoo"
         for (i in 2..maxRow) {
             row(i)
+            checkStableState()
             store(i)
-            check(pistonOut.none { it })
         }
     }
 
@@ -145,18 +146,18 @@ class TopSeq : SequenceBuilder<TopMove>() {
 
     private fun store(n: Int) {
         when (n) {
-            2 -> {
+            2, 10 -> {
                 tsto2
                 stoGrab()
                 +"oo"
             }
-            3 -> {
+            3, 9 -> {
                 tsto1
                 tsto2
                 stoGrab()
                 +"oo"
             }
-            4, 5, 6, 7 -> {
+            in 4..8 -> {
                 unsto
                 tsto1
                 tsto2
@@ -167,35 +168,84 @@ class TopSeq : SequenceBuilder<TopMove>() {
         }
     }
 
-    private val maxPistonsOut = 4
-    val pistonOut = BooleanArray(maxPistonsOut)
+    private val maxPistonsOut = 5
+    private val pistonOut = BooleanArray(maxPistonsOut)
 
-    private var needForcedPiston2Out = false
+    // topmost folded pistons (layer 3-5 of pistonOut)
+    // state machine!
+    private enum class FoldState {
+        None, Out1, Out2, FoldOut1, Out3
+    }
+
+    private var foldState = None
+    private var needForcedFold = false
+
+    private fun addFold() {
+        foldState = when (foldState) {
+            None -> {
+                a
+                Out1
+            }
+            Out1 -> {
+                a
+                Out2
+            }
+            FoldOut1 -> {
+                +"aaa"
+                Out2
+            }
+            Out2 -> {
+                +"aaza"
+                Out3
+            }
+            Out3 -> error("no more folds")
+        }
+    }
+
+    private fun removeFold() {
+        foldState = when (foldState) {
+            None -> error("No fold to remove")
+            Out1 -> error("Need forced fold")
+            FoldOut1 -> {
+                A
+                None
+            }
+            Out2 -> {
+                A
+                FoldOut1
+            }
+            Out3 -> {
+                +"Azaa"
+                Out2
+            }
+        }
+    }
 
     private fun addPistons(layer: Int) {
         // verification
         require(layer in pistonOut.indices)
-        val firstOut = pistonOut.indexOfFirst { it }.let { if (it == -1) maxPistonsOut else it }
-        if (layer >= firstOut) {
+        val firstOut = pistonOut.indexOfFirst { it }
+        if (firstOut != -1 && layer >= firstOut) {
             error("Pistons out bad order. Tried $layer, state ${pistonOut.contentToString()}")
         }
-        if (needForcedPiston2Out && layer <= 2) {
-            needForcedPiston2Out = false
+        if (needForcedFold && layer <= 2) {
+            needForcedFold = false
             return addPistons(2)
         }
         when (layer) {
             0 -> e
             1 -> c
             2 -> {
-                // because of how retraction works, first "a" pulse is always layer 3, not 2
+                // because of how retraction works, need to fold out 2 before can retract 1
+                // so, we pretend this is layer 3 and force a layer 2 later
                 if (!pistonOut[3]) {
-                    needForcedPiston2Out = true
+                    needForcedFold = true
                     return addPistons(3)
                 }
-                a
+                addFold()
             }
-            3 -> a
-            else -> TODO("addPistons($layer)")
+            3, 4 -> addFold()
+            else -> error("")
         }
         pistonOut[layer] = true
 
@@ -207,21 +257,17 @@ class TopSeq : SequenceBuilder<TopMove>() {
         for (i in toRetract downTo 0) when (i) {
             0 -> E
             1 -> +"Cd"
-            2 -> {
-                check(!needForcedPiston2Out)
-                A
-            }
-            3 -> {}
-            else -> TODO("removePistons($i)")
+            2 -> removeFold()
+            3, 4 -> {}
+            else -> error("")
         }
         pistonOut[toRetract] = false
     }
 
     private var obsDown = false
     private fun ensureObsDown(state: Boolean) {
-        check(nObsOut > 0); if (obsDown != state) {
-            tobs
-        }
+        check(nObsOut == 1)
+        if (obsDown != state) tobs
         obsDown = state
     }
 
@@ -234,7 +280,7 @@ class TopSeq : SequenceBuilder<TopMove>() {
                 ensureObsDown(true)
                 obs
             }
-            else -> error("can't add obs")
+            else -> error("no obs to add")
         }
         nObsOut++
     }
@@ -251,6 +297,12 @@ class TopSeq : SequenceBuilder<TopMove>() {
         nObsOut--
     }
 
+    fun checkStableState() {
+        check(pistonOut.none { it })
+        check(nObsOut == 0)
+        check(foldState == None)
+    }
+
 
     fun row(n: Int) {
         require(n >= 0)
@@ -259,7 +311,7 @@ class TopSeq : SequenceBuilder<TopMove>() {
             return f
         }
         extend(n)
-        retract(n, isPiston = false)
+        retract(n, isPiston = false, pistonsHigh = false)
     }
 
     private fun extend(n: Int, origHeight: Int = n) {
@@ -276,6 +328,7 @@ class TopSeq : SequenceBuilder<TopMove>() {
         when (n) {
             1 -> {
                 if (!pistonsHigh) f
+                if (origHeight == 5) +"gg"
                 F
             }
             2 -> {
@@ -300,38 +353,57 @@ class TopSeq : SequenceBuilder<TopMove>() {
             else -> {
                 if (!pistonsHigh) f
                 addObs()
-                extend(n - 3, origHeight = n)
+                // for n==5, we don't do qc power on pistonsHigh because of parity issues
+                val obsHeight = if (pistonsHigh && n == origHeight && n > 5) n - 4 else n - 3
+                extend(obsHeight, origHeight = n)
             }
         }
         if (n == origHeight) when (n) {
             1 -> {}
             2, 3 -> g
             4 -> F
-            5, 6 -> repeat(if (!pistonsHigh) 4 else 2) { g }
+            5, 6 -> repeat(if (!pistonsHigh) 4 else 2) { g } // works also for 6, when obsHeight still 2
             7 -> {
                 if (!pistonsHigh) {
+                    // obsHeight = 4
                     repeat(4) { F }
                 } else {
-                    TODO("pow($n, true)")
+                    // obsHeight = 3
+                    +"gg"
                 }
+            }
+            8 -> {
+                if (!pistonsHigh) {
+                    // obsHeight = 5
+                    +"gg"
+                } else {
+                    // obsHeight = 4
+                    +"FF"
+                }
+            }
+            9 -> {
+                if (!pistonsHigh) {
+                    repeat(6) { g }
+                } else TODO("pow($n, true)")
             }
             else -> TODO("pow($n)")
         }
     }
 
-    private fun maybeRetractObs(n: Int) {
-        if (n == 4) {
-            // obs already up
-            removeObs()
-        } else if (n in 5..7) {
-            retract(n - 3, isPiston = false)
-            removeObs()
-        } else if (n > 6) {
-            TODO("retractObs($n)")
+    private fun maybeRetractObs(n: Int, pistonsHigh: Boolean) {
+        when (n) {
+            in 0..3 -> {}
+            4 -> removeObs() // obs already up
+            in 5..9 -> {
+                val obsHeight = if (pistonsHigh && n > 5) n - 4 else n - 3
+                retract(obsHeight, isPiston = false, pistonsHigh = false)
+                removeObs()
+            }
+            else -> TODO("retractObs($n)")
         }
     }
 
-    private fun retract(n: Int, isPiston: Boolean) {
+    private fun retract(n: Int, isPiston: Boolean, pistonsHigh: Boolean) {
         require(n >= 0)
         if (n == 0) {
             // base case (spe), do nothing
@@ -345,12 +417,12 @@ class TopSeq : SequenceBuilder<TopMove>() {
             return
         }
 
-        maybeRetractObs(n)
+        maybeRetractObs(n, pistonsHigh)
         // pull topmost piston down
         pull(n - 2, false)
         // do previous row, with pistons already up
         extendWithPistonsUp(n - 1, true)
-        retract(n - 1, isPiston)
+        retract(n - 1, isPiston, true)
     }
 
     private fun spit(n: Int) {
@@ -375,7 +447,7 @@ class TopSeq : SequenceBuilder<TopMove>() {
             return
         }
 
-        maybeRetractObs(n)
+        maybeRetractObs(n, false)
 
         // modified row(n-2)
         val pistonRow = n - 2
@@ -385,7 +457,7 @@ class TopSeq : SequenceBuilder<TopMove>() {
         } else {
             extend(pistonRow)
         }
-        retract(pistonRow, isPiston = true)
+        retract(pistonRow, isPiston = true, pistonsHigh = false)
 
         removePistons()
     }
@@ -410,7 +482,7 @@ fun SchemFile.modifyTopRom() {
 
 class GenBottom : StringSpec({
     "gen opening" {
-        val seq = TopSeq().apply { opening(7) }.build()
+        val seq = TopSeq().apply { opening(9) }.build()
         println(seq.joinToString(" "))
         val rom = encodeSimpleChungusRom(seq, encoding, topRomRestrictions)
         val schem = rom.toSchem(cartRotation = 90F).apply { modifyTopRom() }
@@ -421,8 +493,8 @@ class GenBottom : StringSpec({
 
     "print row" {
         val seq = TopSeq().apply {
-            row(7)
-            check(pistonOut.none { it })
+            row(9)
+            checkStableState()
         }.build()
         println(seq.joinToString(" "))
         seq.forEach(::println)
