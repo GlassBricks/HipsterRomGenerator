@@ -47,8 +47,8 @@ class TopSeq : SequenceBuilder<TopMove>() {
 
     private val bfold get() = add(TopMove.bfold)
     private val sto get() = add(TopMove.sto)
-    val unsto get() = add(TopMove.unsto)
-    val tsto1 get() = add(TopMove.tsto1)
+    private val unsto get() = add(TopMove.unsto)
+    private val tsto1 get() = add(TopMove.tsto1)
     private val tsto2 get() = add(TopMove.tsto2)
     private val obs get() = add(TopMove.obs)
     private val tobs get() = add(TopMove.tobs)
@@ -133,6 +133,7 @@ class TopSeq : SequenceBuilder<TopMove>() {
         for (i in 2..maxRow) {
             row(i)
             store(i)
+            check(pistonOut.none { it })
         }
     }
 
@@ -149,14 +150,27 @@ class TopSeq : SequenceBuilder<TopMove>() {
                 stoGrab()
                 +"oo"
             }
-            else -> {
-                TODO("store($n)")
+            3 -> {
+                tsto1
+                tsto2
+                stoGrab()
+                +"oo"
             }
+            4, 5, 6, 7 -> {
+                unsto
+                tsto1
+                tsto2
+                stoGrab()
+                +"oo"
+            }
+            else -> TODO("store($n)")
         }
     }
 
-    private val maxPistonsOut = 2
-    private val pistonOut = BooleanArray(maxPistonsOut)
+    private val maxPistonsOut = 4
+    val pistonOut = BooleanArray(maxPistonsOut)
+
+    private var needForcedPiston2Out = false
 
     private fun addPistons(layer: Int) {
         // verification
@@ -165,13 +179,25 @@ class TopSeq : SequenceBuilder<TopMove>() {
         if (layer >= firstOut) {
             error("Pistons out bad order. Tried $layer, state ${pistonOut.contentToString()}")
         }
-        pistonOut[layer] = true
-
+        if (needForcedPiston2Out && layer <= 2) {
+            needForcedPiston2Out = false
+            return addPistons(2)
+        }
         when (layer) {
             0 -> e
             1 -> c
+            2 -> {
+                // because of how retraction works, first "a" pulse is always layer 3, not 2
+                if (!pistonOut[3]) {
+                    needForcedPiston2Out = true
+                    return addPistons(3)
+                }
+                a
+            }
+            3 -> a
             else -> TODO("addPistons($layer)")
         }
+        pistonOut[layer] = true
 
     }
 
@@ -180,63 +206,188 @@ class TopSeq : SequenceBuilder<TopMove>() {
         if (toRetract == -1) error("No pistons to retract")
         for (i in toRetract downTo 0) when (i) {
             0 -> E
+            1 -> +"Cd"
+            2 -> {
+                check(!needForcedPiston2Out)
+                A
+            }
+            3 -> {}
             else -> TODO("removePistons($i)")
         }
         pistonOut[toRetract] = false
     }
 
+    private var obsDown = false
+    private fun ensureObsDown(state: Boolean) {
+        check(nObsOut > 0); if (obsDown != state) {
+            tobs
+        }
+        obsDown = state
+    }
+
+    private var nObsOut = 0
+
+    private fun addObs() {
+        when (nObsOut) {
+            0 -> obs
+            1 -> {
+                ensureObsDown(true)
+                obs
+            }
+            else -> error("can't add obs")
+        }
+        nObsOut++
+    }
+
+    private fun removeObs() {
+        when (nObsOut) {
+            0 -> error("no obs to remove")
+            1 -> {
+                ensureObsDown(false)
+                obs
+            }
+            2 -> obs
+        }
+        nObsOut--
+    }
+
 
     fun row(n: Int) {
-        require(n >= 1)
+        require(n >= 0)
+        if (n == 0) {
+            // base case, spe
+            return f
+        }
         extend(n)
-        retract(n)
+        retract(n, isPiston = false)
     }
 
-    private fun extend(n: Int) {
-        require(n > 0)
+    private fun extend(n: Int, origHeight: Int = n) {
+        if (n == 0) {
+            // base case, spe
+            return f
+        }
         // more pistons needed
-        var layer = (n - 1) / 2
-        addPistons(layer)
-        extendWithPistonsUp(n, false)
+        addPistons((n - 1) / 2)
+        extendWithPistonsUp(n, false, origHeight)
     }
 
-    private fun extendWithPistonsUp(n: Int, pistonsHigh: Boolean) {
+    private fun extendWithPistonsUp(n: Int, pistonsHigh: Boolean, origHeight: Int = n) {
         when (n) {
-            1 ->  // fake qc power
-                if (pistonsHigh) {
-                    // this is only called from retract(2),
-                    // piston already at level 0
-                    F
+            1 -> {
+                if (!pistonsHigh) f
+                F
+            }
+            2 -> {
+                if (!pistonsHigh) f
+                // already double piston out
+            }
+            3 -> {
+                if (!pistonsHigh) {
+                    // double piston out
+                    addPistons(0)
+                    +"ff"
                 } else {
-                    +"fF"
+                    // already double piston out, see pull(2)
+                    f
                 }
-            2 -> +"fg" // tpe
-            else -> TODO("extend($n)")
+            }
+            4 -> {
+                // spit pistons instead of obs first; less moves/parity issues
+                if (!pistonsHigh || n != origHeight) spit(2)
+                addObs()
+            }
+            else -> {
+                if (!pistonsHigh) f
+                addObs()
+                extend(n - 3, origHeight = n)
+            }
+        }
+        if (n == origHeight) when (n) {
+            1 -> {}
+            2, 3 -> g
+            4 -> F
+            5, 6 -> repeat(if (!pistonsHigh) 4 else 2) { g }
+            7 -> {
+                if (!pistonsHigh) {
+                    repeat(4) { F }
+                } else {
+                    TODO("pow($n, true)")
+                }
+            }
+            else -> TODO("pow($n)")
         }
     }
 
-    private fun retract(n: Int) {
-        require(n >= 1)
+    private fun maybeRetractObs(n: Int) {
+        if (n == 4) {
+            // obs already up
+            removeObs()
+        } else if (n in 5..7) {
+            retract(n - 3, isPiston = false)
+            removeObs()
+        } else if (n > 6) {
+            TODO("retractObs($n)")
+        }
+    }
+
+    private fun retract(n: Int, isPiston: Boolean) {
+        require(n >= 0)
+        if (n == 0) {
+            // base case (spe), do nothing
+            return
+        }
         if (n == 1) {
             // base case: remove pistons, grab block
             removePistons()
-            f
+            // optimization depending on if we're retracting pistons
+            if (isPiston) F else f
             return
         }
+
+        maybeRetractObs(n)
         // pull topmost piston down
-        pull(n - 2)
+        pull(n - 2, false)
         // do previous row, with pistons already up
         extendWithPistonsUp(n - 1, true)
-        retract(n - 1)
+        retract(n - 1, isPiston)
     }
 
-    private fun pull(n: Int) {
+    private fun spit(n: Int) {
+        pull(n, true)
+    }
+
+    private fun pull(n: Int, isSpit: Boolean) {
         if (n == 0) {
             // base case, do nothing. entendWithPistonsUp(1) will handle rest
             return
         }
+        if (n == 1) {
+            // base case, undo extra piston for fake qc power
+            extendWithPistonsUp(1, false)
+            removePistons()
+            return
+        }
         extend(n)
-        TODO("pull($n)")
+        if (n == 2 && !isSpit) {
+            // if not spitting, called from retract(4),
+            // keep double piston out state
+            return
+        }
+
+        maybeRetractObs(n)
+
+        // modified row(n-2)
+        val pistonRow = n - 2
+        if (pistonRow == 1) {
+            // already in double piston state, don't add more pistons
+            extendWithPistonsUp(pistonRow, false)
+        } else {
+            extend(pistonRow)
+        }
+        retract(pistonRow, isPiston = true)
+
+        removePistons()
     }
 }
 
@@ -259,12 +410,21 @@ fun SchemFile.modifyTopRom() {
 
 class GenBottom : StringSpec({
     "gen opening" {
-        val seq = TopSeq().apply { opening(2) }.build()
+        val seq = TopSeq().apply { opening(7) }.build()
         println(seq.joinToString(" "))
         val rom = encodeSimpleChungusRom(seq, encoding, topRomRestrictions)
         val schem = rom.toSchem(cartRotation = 90F).apply { modifyTopRom() }
         schem.writeTo("top-opening")
 
         tryTransfer("20htriangle/roms")
+    }
+
+    "print row" {
+        val seq = TopSeq().apply {
+            row(7)
+            check(pistonOut.none { it })
+        }.build()
+        println(seq.joinToString(" "))
+        seq.forEach(::println)
     }
 })

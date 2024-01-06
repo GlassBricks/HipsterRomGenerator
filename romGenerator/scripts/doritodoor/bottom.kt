@@ -226,11 +226,11 @@ class BotSeq : SequenceBuilder<BottomMove>() {
     fun row(n: Int) {
         require(n in -2..9)
         if (n == -2) return // base case
-        extend(n, false)
+        extend(n)
         retract(n)
     }
 
-    private fun extend(n: Int, pistonsHigh: Boolean, origHeight: Int = n) {
+    private fun extend(n: Int, origHeight: Int = n) {
         require(n in -1..9)
         if (n == -1) {
             // single piston extender
@@ -238,7 +238,7 @@ class BotSeq : SequenceBuilder<BottomMove>() {
         }
         // more pistons needed
         addPistons(n / 2)
-        extendWithPistonsUp(n, pistonsHigh, origHeight)
+        extendWithPistonsUp(n, false, origHeight)
     }
 
     private fun blockUp() {
@@ -277,7 +277,7 @@ class BotSeq : SequenceBuilder<BottomMove>() {
             else -> {
                 // use more obs
                 addObs()
-                extend(n - 3, false, origHeight) // extra pulses so top piston is powered
+                extend(n - 3, origHeight) // extra pulses so top piston is powered
                 if (n == origHeight) when (n) {
                     2 -> b // 1st power by extend(-1 )
                     3, 4, 5 -> +"aa" // powered through block
@@ -296,6 +296,18 @@ class BotSeq : SequenceBuilder<BottomMove>() {
         }
     }
 
+    private fun maybeRetractObs(n: Int) {
+        if (n == 2 && sBlockState == BlockUp) {
+            // if block up, tuck it in
+            check(n % 3 == 2)
+            tuckBlockUp()
+        } else if (n >= 2) {
+            // remove obs
+            retract(n - 3)
+            removeObs()
+        }
+    }
+
     private fun retract(n: Int) {
         require(n in -1..9)
         if (n == -1) {
@@ -308,16 +320,7 @@ class BotSeq : SequenceBuilder<BottomMove>() {
             b
             return
         }
-
-        if (n == 2 && sBlockState == BlockUp) {
-            // if block up, tuck it in
-            check(n % 3 == 2)
-            tuckBlockUp()
-        } else if (n >= 2) {
-            // remove obs
-            retract(n - 3)
-            removeObs()
-        }
+        maybeRetractObs(n)
 
         // pull topmost piston one down
         pull(n - 2)
@@ -330,16 +333,13 @@ class BotSeq : SequenceBuilder<BottomMove>() {
     private fun pull(n: Int) {
         require(n in -1..7)
         // full extension, partial retraction
-        extend(n, false)
+        extend(n)
         if (n == -1) {
             // base case (spe), no retraction: do nothing
             return
         }
-        // remove obs if exists
-        if (n >= 2) {
-            retract(n - 3)
-            removeObs()
-        }
+        maybeRetractObs(n)
+
         // remove pistons
         row(n - 2)
         removePistons()

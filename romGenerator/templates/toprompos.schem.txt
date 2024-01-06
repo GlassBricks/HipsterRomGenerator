@@ -1,0 +1,33 @@
+{
+  BlockData: b[0]
+  BlockEntities: []
+  DataVersion: 3578
+  Entities: [{
+    Air: 300s
+    FallDistance: 0.0f
+    Fire: -1s
+    Id: "minecraft:chest_minecart"
+    Invulnerable: 0b
+    Items: []
+    Motion: [0.0, 0.0, 0.0]
+    OnGround: 0b
+    PortalCooldown: 0
+    Pos: [1982.5, 120.0625, 1980.4900000095367]
+    Rotation: [90.0f, 0.0f]
+    UUID: i[1497837610, 1776763470, -1091963982, 495349401]
+  }]
+  Height: 1s
+  Length: 1s
+  Metadata: {
+    WEOffsetX: 0
+    WEOffsetY: -2
+    WEOffsetZ: 0
+  }
+  Offset: i[1982, 120, 1980]
+  Palette: {
+    minecraft:powered_rail[powered=false,shape=north_south,waterlogged=false]: 0
+  }
+  PaletteMax: 1
+  Version: 2
+  Width: 1s
+}
