@@ -371,7 +371,7 @@ class Gen : FreeSpec({
         seq.forEach(::println)
     }
 
-//    "transfer" {
-//        tryTransfer("20htriangle/roms")
-//    }
+    "transfer" {
+        tryTransfer("20htriangle/roms")
+    }
 })

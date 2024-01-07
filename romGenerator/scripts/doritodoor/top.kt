@@ -17,21 +17,8 @@ import ogMegafoldHipster.SequenceBuilder
 
 @Suppress("EnumEntryName")
 enum class TopMove {
-    jworm,
-    tobs,
-    bfold, // bottom fold
-    obs,
-    g,
-    e,
-    a,
-    c,
-    caps_lock,
-    f,
-    sto,
-    unsto,
-    tsto1,
-    tsto2,
-    d
+    jworm, tobs, bfold, // bottom fold
+    obs, g, e, a, c, caps_lock, f, sto, unsto, tsto1, tsto2, d
 }
 
 private val encoding = ordinalEncoding<TopMove>(offest = 1)
@@ -55,7 +42,7 @@ class TopSeq : SequenceBuilder<TopMove>() {
 
     private val wait get() = capsLock()
 
-    private val jworm get() = lower(TopMove.jworm)
+    private val jworm get() = add(TopMove.jworm)
 
     private val a get() = lower(TopMove.a)
     private val c get() = lower(TopMove.c)
@@ -133,6 +120,11 @@ class TopSeq : SequenceBuilder<TopMove>() {
         lower(TopMove.sto)
     }
 
+    private fun stoPush() {
+        wait
+        upper(TopMove.sto)
+    }
+
     private fun store(n: Int) {
         when (n) {
             2 -> {
@@ -162,6 +154,39 @@ class TopSeq : SequenceBuilder<TopMove>() {
             }
             else -> error("bad n $n")
         }
+    }
+
+    fun closing() {
+        stoPush()
+        f
+
+        tsto2
+        stoGrab()
+        f
+
+        tsto1
+        tsto2
+        stoGrab()
+        f
+
+        repeat(5) {
+            jworm
+            tsto1
+            tsto2
+            stoGrab()
+            f
+        }
+        tsto1
+        tsto2
+        stoPush()
+        f
+
+        stoGrab()
+        wait
+        tsto2
+        jworm  // fix parity while waiting
+        lower(TopMove.sto)
+        +"fef"
     }
 
     private val maxPistonsOut = 6 // for layer 6 (index 5), we cheat a bit
@@ -355,14 +380,14 @@ class TopSeq : SequenceBuilder<TopMove>() {
     private fun extendWithPistonsUp(n: Int, pistonsHigh: Boolean, origHeight: Int = n) {
         when {
             n == 1 -> {
-                if (!pistonsHigh) f
-                if (origHeight == 5) +"gg"
-                if (!pistonOut.all { it }) {
-                    F
-                } else {
+                if (pistonOut.all { it }) {
                     // use jank input
-                    check(nObsOut == 0 && n == origHeight)
+                    check(!pistonsHigh && nObsOut == 0 && n == origHeight)
                     jworm
+                } else {
+                    if (!pistonsHigh) f
+                    if (origHeight == 5) +"gg"
+                    F
                 }
             }
             n == 2 -> {
@@ -559,22 +584,20 @@ class GenBottom : StringSpec({
 
         tryTransfer("20htriangle/roms")
     }
-    "gen just row 11" {
-        val seq = TopSeq().apply {
-            row(11)
-            checkStableState()
-        }.build()
+    "gen closing" {
+        val seq = TopSeq().apply { closing() }.build()
+//        println(seq.joinToString(" "))
+        println(seq.size)
         val rom = encodeSimpleChungusRom(seq, encoding, topRomRestrictions)
         val schem = rom.toSchem(cartRotation = 90F).apply { modifyTopRom() }
-//        schem.writeTo("row-11")
-        schem.writeTo("top-opening")
+        schem.writeTo("top-closing")
 
         tryTransfer("20htriangle/roms")
     }
 
     "print row" {
         val seq = TopSeq().apply {
-            row(3)
+            row(11)
             checkStableState()
         }.build()
         println(seq.joinToString(" "))
