@@ -47,7 +47,6 @@ private val topRomRestrictions = RomRestrictions(
 class TopSeq : SequenceBuilder<TopMove>() {
 
     private val bfold get() = add(TopMove.bfold)
-    private val sto get() = add(TopMove.sto)
     private val unsto get() = add(TopMove.unsto)
     private val tsto1 get() = add(TopMove.tsto1)
     private val tsto2 get() = add(TopMove.tsto2)
@@ -128,25 +127,20 @@ class TopSeq : SequenceBuilder<TopMove>() {
 
     }
 
-    fun opening(maxRow: Int = 11) {
-        // manually do row 1
-        +"FEfoo"
-        for (i in 2..maxRow) {
-            row(i)
-            checkStableState()
-            store(i)
-        }
-    }
 
     private fun stoGrab() {
         wait
-        ensureState(false)
-        sto
+        lower(TopMove.sto)
+    }
+
+    private fun stoPush() {
+        wait
+        upper(TopMove.sto)
     }
 
     private fun store(n: Int) {
         when (n) {
-            2, 10 -> {
+            2 -> {
                 tsto2
                 stoGrab()
                 +"oo"
@@ -164,11 +158,18 @@ class TopSeq : SequenceBuilder<TopMove>() {
                 stoGrab()
                 +"oo"
             }
-            else -> TODO("store($n)")
+            10 -> {
+                tsto2
+                +"oo"
+            }
+            11 -> {
+                check(elements.removeLast() == TopMove.f)
+            }
+            else -> error("bad n $n")
         }
     }
 
-    private val maxPistonsOut = 5
+    private val maxPistonsOut = 6 // for layer 6 (index 5), we cheat a bit
     private val pistonOut = BooleanArray(maxPistonsOut)
 
     // topmost folded pistons (layer 3-5 of pistonOut)
@@ -232,19 +233,36 @@ class TopSeq : SequenceBuilder<TopMove>() {
             needForcedFold = false
             return addPistons(2)
         }
+        val isStretch = layer <= 2 && (layer + 1..5).all { pistonOut[it] }
         when (layer) {
-            0 -> e
-            1 -> c
+            0 -> {
+                check(!isStretch) { "cannot extend layer 0 in stretch mode" }
+                e
+            }
+            1 -> {
+                if (!isStretch) {
+                    // normal extension
+                    c
+                } else {
+                    // stretch extension
+                    d // the ONLY lowercase d!
+                }
+            }
             2 -> {
-                // because of how retraction works, need to fold out 2 before can retract 1
-                // so, we pretend this is layer 3 and force a layer 2 later
                 if (!pistonOut[3]) {
+                    // because of how retraction works, need to fold out 2 before can retract 1
+                    // so, we pretend this is layer 3 and force a layer 2 later
                     needForcedFold = true
                     return addPistons(3)
+                } else if (!isStretch) {
+                    // normal extension
+                    addFold()
+                } else {
+                    // stretch extension
+                    c
                 }
-                addFold()
             }
-            3, 4 -> addFold()
+            3, 4, 5 -> addFold()
             else -> error("")
         }
         pistonOut[layer] = true
@@ -254,15 +272,30 @@ class TopSeq : SequenceBuilder<TopMove>() {
     private fun removePistons() {
         val toRetract = pistonOut.indexOfFirst { it }
         if (toRetract == -1) error("No pistons to retract")
-        for (i in toRetract downTo 0) when (i) {
-            0 -> E
-            1 -> +"Cd"
-            2 -> removeFold()
-            3, 4 -> {}
-            else -> error("")
+
+        fun doRetract(startIndex: Int) {
+            for (i in startIndex downTo 0) when (i) {
+                0 -> E
+                1 -> +"Cd"
+                2 -> removeFold()
+                3, 4 -> {}
+                else -> error("")
+            }
         }
+
+        val wasStretch = toRetract <= 2 && (toRetract..5).all { pistonOut[it] }
+        if (!wasStretch) {
+            doRetract(toRetract)
+        } else when (toRetract) {
+            0 -> +"e"
+            1 -> +"dE"
+            2 -> doRetract(1)
+            else -> error("bad toRetract $toRetract")
+        }
+
         pistonOut[toRetract] = false
     }
+
 
     private var obsDown = false
     private fun ensureObsDown(state: Boolean) {
@@ -303,6 +336,15 @@ class TopSeq : SequenceBuilder<TopMove>() {
         check(foldState == None)
     }
 
+    fun opening(maxRow: Int = 11) {
+        // manually do row 1
+        +"FEfoo"
+        for (i in 2..maxRow) {
+            row(i)
+            checkStableState()
+            store(i)
+        }
+    }
 
     fun row(n: Int) {
         require(n >= 0)
@@ -319,7 +361,6 @@ class TopSeq : SequenceBuilder<TopMove>() {
             // base case, spe
             return f
         }
-        // more pistons needed
         addPistons((n - 1) / 2)
         extendWithPistonsUp(n, false, origHeight)
     }
@@ -337,9 +378,15 @@ class TopSeq : SequenceBuilder<TopMove>() {
             }
             3 -> {
                 if (!pistonsHigh) {
-                    // double piston out
-                    addPistons(0)
-                    +"ff"
+                    if (!(1..5).all { pistonOut[it] }) {
+                        addPistons(0)
+                    } else {
+                        addObs()
+                        +"ff"
+                        removeObs()
+                        // final strecth, we do weird stuff
+                        TODO("pow(3) stretch")
+                    }
                 } else {
                     // already double piston out, see pull(2)
                     f
@@ -350,13 +397,24 @@ class TopSeq : SequenceBuilder<TopMove>() {
                 if (!pistonsHigh || n != origHeight) spit(2)
                 addObs()
             }
-            else -> {
+            in 5..9 -> {
                 if (!pistonsHigh) f
                 addObs()
-                // for n==5, we don't do qc power on pistonsHigh because of parity issues
+                // for pistonsHigh && n==5, we don't do qc power because of parity issues
                 val obsHeight = if (pistonsHigh && n == origHeight && n > 5) n - 4 else n - 3
-                extend(obsHeight, origHeight = n)
+                extend(obsHeight, origHeight)
             }
+            10, 11 -> {
+                if (!pistonsHigh) {
+                    // we don't have enough obs to do full extension, so spit first
+                    spit(n - 2)
+                    addObs()
+                    extend(n - 4, origHeight = n)
+                } else {
+                    TODO("pow($n, true)")
+                }
+            }
+            else -> TODO()
         }
         if (n == origHeight) when (n) {
             1 -> {}
@@ -384,7 +442,13 @@ class TopSeq : SequenceBuilder<TopMove>() {
             9 -> {
                 if (!pistonsHigh) {
                     repeat(6) { g }
-                } else TODO("pow($n, true)")
+                } else {
+                    +"gg"
+                }
+            }
+            10 -> {
+                // pistons are high regardless
+                +"gg"
             }
             else -> TODO("pow($n)")
         }
@@ -394,8 +458,8 @@ class TopSeq : SequenceBuilder<TopMove>() {
         when (n) {
             in 0..3 -> {}
             4 -> removeObs() // obs already up
-            in 5..9 -> {
-                val obsHeight = if (pistonsHigh && n > 5) n - 4 else n - 3
+            in 5..10 -> {
+                val obsHeight = if (pistonsHigh && n > 5 || n >= 10) n - 4 else n - 3
                 retract(obsHeight, isPiston = false, pistonsHigh = false)
                 removeObs()
             }
@@ -457,8 +521,8 @@ class TopSeq : SequenceBuilder<TopMove>() {
         } else {
             extend(pistonRow)
         }
-        retract(pistonRow, isPiston = true, pistonsHigh = false)
 
+        retract(pistonRow, isPiston = true, pistonsHigh = false)
         removePistons()
     }
 }
@@ -482,7 +546,7 @@ fun SchemFile.modifyTopRom() {
 
 class GenBottom : StringSpec({
     "gen opening" {
-        val seq = TopSeq().apply { opening(9) }.build()
+        val seq = TopSeq().apply { opening() }.build()
         println(seq.joinToString(" "))
         val rom = encodeSimpleChungusRom(seq, encoding, topRomRestrictions)
         val schem = rom.toSchem(cartRotation = 90F).apply { modifyTopRom() }
@@ -493,7 +557,7 @@ class GenBottom : StringSpec({
 
     "print row" {
         val seq = TopSeq().apply {
-            row(9)
+            row(11)
             checkStableState()
         }.build()
         println(seq.joinToString(" "))
