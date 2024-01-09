@@ -3,30 +3,16 @@ package notahipster
 import me.glassbricks.infinirom.SSEncoding
 import me.glassbricks.infinirom.toRecordCartSchem
 import me.glassbricks.schem.writeTo
-import java.io.File
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 
-class Params(
-    val tapeWaitMoves: List<Int>,
-    val addPurpleInnerMovesFirst: Boolean,
-    val addFinalPurple: Boolean,
-    val pinkTapeSize: Int,
-    val pinkTapeInitialPos: Int,
-    val doPinkDisperse: Boolean,
-    val doWaitOptimization: Int,
-    val encoding: SSEncoding<Move>,
-)
-
-private val params = Params(
-    tapeWaitMoves = listOf(28, 29, 31, 34, 36, 38, 40),
-    addPurpleInnerMovesFirst = true,
-    addFinalPurple = false,
-    pinkTapeSize = 16,
-    pinkTapeInitialPos = -6 + 16,
-    doPinkDisperse = false,
-    doWaitOptimization = 3,
-    encoding = SSEncoding(
+object params {
+    val tapeWaitMoves = listOf(28, 29, 31, 34, 36, 38, 40)
+    val addPurpleInnerMovesFirst = true
+    val addFinalPurple = false
+    val pinkTapeSize = 16
+    val pinkTapeInitialPos = -6 + 16
+    val doPinkDisperse = false
+    val doWaitOptimization = 3
+    val encoding = SSEncoding(
         Move.e to 1,
         Move.d to 2,
         Move.wait to 3,
@@ -40,14 +26,12 @@ private val params = Params(
         Move.lb4t to 11,
         Move.f to 12,
         Move.pink to 13,
-    ),
-)
+    )
+}
 
 fun main() {
-    clearOutDir()
     genEachRow()
     genFullSeq()
-    zipOutDir()
 }
 
 /*
@@ -69,12 +53,6 @@ old encoding
  */
 
 
-private val outDir = File("romGenerator/9x9fs out")
-private fun clearOutDir() {
-    outDir.mkdirs()
-    outDir.listFiles()?.forEach { it.deleteRecursively() }
-}
-
 private val rowFns = listOf(
     SeqGen::row1234,
     SeqGen::row5,
@@ -94,7 +72,7 @@ private fun genEachRow() {
             addPurpleInnerMovesFirst = params.addPurpleInnerMovesFirst,
         )
         fn(gen)
-        writeSchem(gen, outDir.resolve("${fn.name}.schem"))
+        writeSchem(gen, "${fn.name}.schem")
     }
 }
 
@@ -113,35 +91,16 @@ private fun genFullSeq() {
     }
 
 //    println(gen.moves)
-    writeSchem(gen, outDir.resolve("full.schem"))
+    writeSchem(gen, "full.schem")
 }
 
-private fun writeSchem(gen: SeqGen, file: File) {
+private fun writeSchem(gen: SeqGen, file: String) {
     var moves: List<Move> = gen.moves
     if (params.doPinkDisperse) moves = dispersePinks(moves)
 
-    val rom = purpleWaitOptimizedRecordInfinirom(moves, params.encoding, params.doWaitOptimization, !params.addFinalPurple)
+    val rom =
+        purpleWaitOptimizedRecordInfinirom(moves, params.encoding, params.doWaitOptimization, !params.addFinalPurple)
 
     val schem = rom.toRecordCartSchem(rotation = 90f)
     schem.writeTo(file)
-}
-
-
-private val versionFile = File("romGenerator/9x9fs moves/cur_version")
-
-private fun zipOutDir() {
-
-    if (!versionFile.exists()) versionFile.writeText("0")
-    val version = versionFile.readText().trim().toIntOrNull() ?: 0
-    versionFile.writeText((version + 1).toString())
-    val files = outDir.listFiles()
-
-    val zipFile = outDir.resolve("9x9fs-$version.zip")
-    ZipOutputStream(zipFile.outputStream()).use { zos ->
-        files?.forEach { file ->
-            zos.putNextEntry(ZipEntry(file.name))
-            file.inputStream().use { it.copyTo(zos) }
-            zos.closeEntry()
-        }
-    }
 }
