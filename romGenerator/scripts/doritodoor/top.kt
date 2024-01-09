@@ -108,7 +108,9 @@ class TopSeq : SequenceBuilder<TopMove>() {
             'O' -> tobs
             'z' -> bfold
             '-' -> wait
+
             ' ', '\n' -> {}
+
             else -> error("bad char $ch")
         }
 
@@ -573,9 +575,11 @@ fun SchemFile.modifyTopRom() {
     this.Offset = intArrayOf(1982, 120, 1980)
 }
 
+private fun getSeq(block: TopSeq.() -> Unit): List<TopMove> = TopSeq().apply(block).build()
+
 class GenBottom : StringSpec({
     "gen opening" {
-        val seq = TopSeq().apply { opening() }.build()
+        val seq = getSeq { opening() }
 //        println(seq.joinToString(" "))
         println(seq.size)
         val rom = encodeSimpleChungusRom(seq, encoding, topRomRestrictions)
@@ -585,7 +589,7 @@ class GenBottom : StringSpec({
         tryTransfer("20htriangle/roms")
     }
     "gen closing" {
-        val seq = TopSeq().apply { closing() }.build()
+        val seq = getSeq { closing() }
 //        println(seq.joinToString(" "))
         println(seq.size)
         val rom = encodeSimpleChungusRom(seq, encoding, topRomRestrictions)
@@ -596,19 +600,19 @@ class GenBottom : StringSpec({
     }
 
     "print row" {
-        val seq = TopSeq().apply {
+        val seq = getSeq {
             row(11)
             checkStableState()
-        }.build()
+        }
         println(seq.joinToString(" "))
         seq.forEach(::println)
     }
 
     "print pull 3 when jank" {
-        val seq = TopSeq().apply {
+        val seq = getSeq {
             for (i in 2..5) pistonOut[i] = true
             pull(3, false)
-        }.build()
+        }
         println(seq.joinToString(" "))
         seq.forEach(::println)
     }

@@ -349,7 +349,6 @@ class BotSeq : SequenceBuilder<BottomMove>() {
 class Gen : FreeSpec({
     "gen closing" {
         val seq = BotSeq().apply { closing() }.build()
-        println(seq.joinToString(" "))
         val rom = encodeSimpleChungusRom(seq, encoding, botRomRestrictions)
         val schem = rom.toSchem()
         schem.writeTo("bot-closing.schem")
@@ -357,7 +356,6 @@ class Gen : FreeSpec({
 
     "gen opening" {
         val seq = BotSeq().apply { opening(9) }.build()
-        println(seq.joinToString(" "))
         val rom = encodeSimpleChungusRom(seq, encoding, botRomRestrictions)
         val schem = rom.toSchem()
         schem.writeTo("bot-opening.schem")
@@ -369,9 +367,5 @@ class Gen : FreeSpec({
         val seq = BotSeq().apply { row(7) }.build()
         println(seq.joinToString(" "))
         seq.forEach(::println)
-    }
-
-    "transfer" {
-        tryTransfer("20htriangle/roms")
     }
 })
