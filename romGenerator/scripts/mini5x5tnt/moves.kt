@@ -1,11 +1,11 @@
 package mini5x5tnt
 
 import io.kotest.core.spec.style.StringSpec
+import me.glassbricks.SequenceBuilder
 import me.glassbricks.infinirom.encode
 import me.glassbricks.infinirom.ordinalEncoding
 import me.glassbricks.infinirom.toInifinirom1
 import me.glassbricks.schem.writeTo
-import ogMegafoldHipster.SequenceBuilder
 import java.io.File
 
 @Suppress("EnumEntryName")

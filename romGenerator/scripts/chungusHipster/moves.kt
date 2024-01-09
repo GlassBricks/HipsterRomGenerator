@@ -1,8 +1,8 @@
 package chungusHipster
 
 import chungusHipster.Move.*
+import me.glassbricks.SequenceBuilder
 import me.glassbricks.infinirom.SSEncoding
-import ogMegafoldHipster.SequenceBuilder
 import me.glassbricks.splitCamelCase
 
 
@@ -357,4 +357,3 @@ class ChungusSeqBuilder : SequenceBuilder<Move>() {
 fun getChungusSequence(
     fn: ChungusSeqBuilder.() -> Unit,
 ): List<Move> = ChungusSeqBuilder().apply(fn).build()
-

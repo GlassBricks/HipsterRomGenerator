@@ -3,6 +3,7 @@ package ogMegafoldHipster
 import ogMegafoldHipster.Move.*
 import me.glassbricks.BinaryEncoding
 import me.glassbricks.splitCamelCase
+import javax.sound.midi.MidiSystem.getSequence
 import kotlin.math.abs
 
 enum class Move {
@@ -181,6 +182,7 @@ val pull by fn { n ->
     clearPistons
 }
 
+fun getSequence(block: B.() -> Unit): List<Move> = SimpleSequenceVisitor<Move>().apply(block).build()
 
 val normal6x6Sequence = getSequence {
     for (i in 1..5) {

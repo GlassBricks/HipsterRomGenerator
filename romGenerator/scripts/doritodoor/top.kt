@@ -4,6 +4,7 @@ package doritodoor
 
 import doritodoor.TopSeq.FoldState.*
 import io.kotest.core.spec.style.StringSpec
+import me.glassbricks.SequenceBuilder
 import me.glassbricks.infinirom.RomRestrictions
 import me.glassbricks.infinirom.encodeSimpleChungusRom
 import me.glassbricks.infinirom.ordinalEncoding
@@ -12,7 +13,6 @@ import me.glassbricks.knbt.compoundTag
 import me.glassbricks.schem.SchemFile
 import me.glassbricks.schem.tryTransfer
 import me.glassbricks.schem.writeTo
-import ogMegafoldHipster.SequenceBuilder
 
 
 @Suppress("EnumEntryName")

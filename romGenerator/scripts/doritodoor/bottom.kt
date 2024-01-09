@@ -5,13 +5,13 @@ package doritodoor
 import doritodoor.BotSeq.StorageBlockState.*
 import io.kotest.core.spec.style.FreeSpec
 import me.glassbricks.CHEST_MAX
+import me.glassbricks.SequenceBuilder
 import me.glassbricks.infinirom.RomRestrictions
 import me.glassbricks.infinirom.encodeSimpleChungusRom
 import me.glassbricks.infinirom.ordinalEncoding
 import me.glassbricks.infinirom.toSchem
 import me.glassbricks.schem.tryTransfer
 import me.glassbricks.schem.writeTo
-import ogMegafoldHipster.SequenceBuilder
 
 
 @Suppress("EnumEntryName")

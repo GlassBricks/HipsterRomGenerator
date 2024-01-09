@@ -2,8 +2,8 @@ package jankHipster
 
 import io.kotest.matchers.shouldBe
 import jankHipster.Move.*
+import me.glassbricks.SequenceBuilder
 import me.glassbricks.infinirom.SSEncoding
-import ogMegafoldHipster.SequenceBuilder
 
 
 class HipSequences(

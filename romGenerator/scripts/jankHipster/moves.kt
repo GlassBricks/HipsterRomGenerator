@@ -1,8 +1,8 @@
 package jankHipster
 
 import jankHipster.Move.*
+import me.glassbricks.SequenceBuilder
 import me.glassbricks.infinirom.SSEncoding
-import ogMegafoldHipster.RsSequenceVisitor
 import me.glassbricks.splitCamelCase
 
 @Suppress("EnumEntryName")
@@ -25,7 +25,7 @@ enum class Move(strName: String? = null) {
     override fun toString(): String = strName
 }
 
-private typealias B = RsSequenceVisitor<Move>
+private typealias B = SequenceBuilder<Move>
 
 fun B.store() {
     add(t4, o, o)
@@ -182,12 +182,6 @@ fun B.seq7() {
     row7()
     t1 * 3
 }
-
-fun B.only7() {
-    row7()
-    t1 * 3
-}
-
 
 val encoding1 = SSEncoding(
     mid to 1,

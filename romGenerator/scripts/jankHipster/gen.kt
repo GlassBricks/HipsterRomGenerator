@@ -1,11 +1,11 @@
 package jankHipster
 
 import io.kotest.core.spec.style.StringSpec
+import me.glassbricks.getSequence
 import me.glassbricks.infinirom.SSEncoding
 import me.glassbricks.infinirom.encode
 import me.glassbricks.infinirom.toInifinirom1
 import me.glassbricks.schem.writeTo
-import ogMegafoldHipster.getSequence
 import java.io.File
 
 
@@ -16,6 +16,8 @@ fun List<Move>.writeInfRomSchem(
     val schem = encoding.encode(this).toInifinirom1()
     schem.writeTo(File(name))
 }
+
+
 
 class MakeSchems : StringSpec({
     "print seq len" {

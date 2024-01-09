@@ -1,5 +1,6 @@
 package ogMegafoldHipster
 
+import me.glassbricks.SequenceBuilder
 import java.io.PrintWriter
 import java.io.StringWriter
 
@@ -98,7 +99,7 @@ interface RsSequenceVisitor<I> {
     operator fun Array<I>.invoke() = addAll(this)
 }
 
-open class SequenceBuilder<I> : RsSequenceVisitor<I> {
+open class SimpleSequenceVisitor<I> : RsSequenceVisitor<I> {
     protected val elements = mutableListOf<I>()
 
     override fun add(element: I) {
@@ -108,8 +109,6 @@ open class SequenceBuilder<I> : RsSequenceVisitor<I> {
     open fun build() = elements.toList()
 }
 
-inline fun <I> getSequence(visit: RsSequenceVisitor<I>.() -> Unit) =
-    SequenceBuilder<I>().apply(visit).build()
 
 class TreePrintVisitor<I> : RsSequenceVisitor<I> {
     private val out = StringWriter()
