@@ -441,8 +441,6 @@ class TopSeq2 : SequenceBuilder<TopMove>() {
 
     private fun pow(n: Int, pistonsAlreadyOut: Boolean) {
         // extra pulses so bottom is powered
-        // TODO maybe remove wait move?
-//        if (n >= 6 && elements.last() == TopMove.jworm) wait
         when (n) {
             1 -> fQc()
             2, 3 -> g
