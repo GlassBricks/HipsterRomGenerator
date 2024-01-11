@@ -356,6 +356,7 @@ class Gen : FreeSpec({
 
     "gen opening" {
         val seq = BotSeq().apply { opening(9) }.build()
+        println(seq.size)
         val rom = encodeSimpleChungusRom(seq, encoding, botRomRestrictions)
         val schem = rom.toSchem()
         schem.writeTo("bot-opening.schem")
